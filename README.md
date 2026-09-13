@@ -78,3 +78,27 @@ Si intentáramos guardar el Stream<Drone> en una variable local y ejecutar la co
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 ---
+
+## 02 · GITHUB Y GITFLOW
+### Crear el repositorio de SkyCampus con flujo correcto
+
+#### Link del REPO: https://github.com/CatrachoINXS/SkyCampus-ECI-Ortiz.git
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REVISIÓN — SkyCampus [Chimchar]
+Reto: Configuración de Git, GitFlow y Modelo Inicial
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ESTADO: APROBADO ✅
+
+Lo que está bien:
+
+La estructura de ramas respeta la convención de GitFlow (main, develop y la rama de característica feature/Ortiz-modelo-drone).
+
+La historia de commits es atómica, secuencial y sigue el estándar de Conventional Commits (feat:).
+
+El grafo de Git confirma que la integración (merge) hacia la rama develop se realizó correctamente partiendo del commit inicial de main.
+```
+
+---
