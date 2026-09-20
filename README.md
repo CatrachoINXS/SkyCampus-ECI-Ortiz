@@ -325,6 +325,79 @@ public class HighestBatteryStrategy implements DroneSelectionStrategy {
 |**Open/Closed**|El condicional del método calcular ruta debe modificarse a medida que se quieren implementar nuevas funcionalidades, por lo tanto es abierto para la modificacion y cerrado para la extension.|
 |**Dependency Inversion**|La clase está acomplada a implementaciones concretas como MySQL y no a abstracciones como Base de Datos|
 
+### Rediseño de la implementación usando los principios SOLID
+
+```java
+public class AsignadorMision {
+    
+    public void asignarMision(Drone dron, Mision mision) {
+        // lógica de asignación
+    }
+}
+
+
+public interface RepositorioMision {
+    void guardarEnBD(Mision mision);
+}
+
+
+public interface AlertaOperador {
+    void enviarAlerta(String msg);
+}
+
+
+public class GeneradorReporte {
+    
+     public void generarReportePDF(List<Mision> misiones) {
+        // genera PDF con iText aquí
+    }
+}
+
+public interface EstrategiaRuta {
+    void calcularRuta(String origen, String destino);
+}
+
+
+public class EstrategiaRutaDirecta implements EstrategiaRuta {
+
+    @Override
+    public void calcularRuta(String origen, String destino) {
+        // Calcula la ruta directa
+    }
+    
+}
+
+
+public class EstrategiaRutaEvitar implements EstrategiaRuta {
+
+    @Override
+    public void calcularRuta(String origen, String destino) {
+        // Evita los edificios altos
+    }
+    
+}
+```
+### Respuesta del agente: 
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 4 — Principios SOLID y Refactorización  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Identificación de violaciones SOLID:** Identificaste de manera precisa las tres violaciones principales (SRP, OCP y DIP) explicando adecuadamente la causa en el código original.  
+>  
+> **Refactorización modular (SRP):** Desacoplaste correctamente la clase monolítica GestorDrone en clases e interfaces cohesivas, asegurando que cada una tenga una sola responsabilidad y razón para cambiar.  
+>  
+> **Inversión de Dependencias (DIP) y OCP:** Al convertir la persistencia y la alerta a interfaces (RepositorioMision y AlertaOperador), desacoplaste las implementaciones concretas. Además, el uso de la interfaz EstrategiaRuta reemplazó el bloque if/else por polimorfismo, permitiendo extender nuevos tipos de ruta sin modificar el código existente.  
+>  
+> **Cumplimiento de estándares de código:** Los nombres siguen las convenciones en Java (PascalCase, camelCase) y la longitud de los métodos y clases está dentro de los límites del nivel Chimchar.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
 
 
 
