@@ -102,3 +102,195 @@ El grafo de Git confirma que la integración (merge) hacia la rama develop se re
 ```
 
 ---
+
+## 03 · PATRONES DE DISEÑO
+### Elegir el patrón correcto para cada problema de SkyCampus MVP
+
+**Problema 1:**  Una `Mision` tiene campos obligatorios (drone, origen, destino) y opcionales (prioridad, notas del operador, hora máxima de entrega). Crear un constructor para cada combinación es insostenible y confuso.
+
+#### **(a) PATRON BUILDER:** (b) Porque construye paso a paso solo los campos necesarios para una misión.
+
+#### (c) Implementación de la estructura mínima en Java
+
+```java
+public class MisionBuilder {
+
+    private Drone drone;
+    private String origen, destino;
+    private TipoCarga tipoCarga;
+
+    private EstadoMision estadoMision = EstadoMision.PENDIENTE;
+    private LocalTime horaMaxima;
+    private String notas = "";
+    private int prioridad = 3;
+
+    public MisionBuilder drone(Drone d) { this.drone = d; return this; }
+    public MisionBuilder origen(String o) { this.origen = o; return this; }
+    public MisionBuilder destino(String d) { this.destino = d; return this; }
+    public MisionBuilder tipoCarga(TipoCarga c) { this.tipoCarga = c; return this; }
+
+    public MisionBuilder horaMaxima(LocalTime h) { this.horaMaxima = h; return this; }
+    public MisionBuilder notas(String n)   { this.notas   = n;  return this; }
+
+    public Mision build() {
+        if (origen == null || destino == null || drone == null) {
+            throw new IllegalStateException("Drone, origen y destino son obligatorios");
+        }
+        return new Mision(destino, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
+    }
+
+}
+
+// ———————— Uso ———————————————————————————————————————————————————————
+
+    Mision m = new MissionBuilder()
+        .drone(d03).origen("Bloque C").destino("Biblioteca")
+        .tipoCarga(TipoCarga.SOBRE)
+        .horaMaxima(LocalDate.of(6, 20))
+        .notas("Urgente Examen mañana")
+        .build();
+     
+```
+
+**Problema 2:** Antes de lanzar el drone, el sistema debe validar en orden: (a) ¿el drone tiene batería suficiente? (b) ¿el destino es válido? (c) ¿la carga no supera el peso máximo? Cada validación decide si pasa o rechaza.
+
+#### **(a) PATRON CHAIN OF RESPONSIBILITY:** (b) Porque cada validador procesa la batería, el destino y la carga de manera secuencial.
+
+#### (c) Implementación de la estructura mínima en Java
+
+```java
+public interface Validator {
+    Validator setNext(Validator validator);
+    void validate(Mision mision);
+}
+
+
+public abstract class BaseValidator implements Validator {
+    
+    private Validator next;
+
+    @Override 
+    public Validator setNext(Validator validator) {
+        this.next = validator;
+        return validator;
+    }
+
+    protected void nextValidator(Mision mision) {
+        if (next != null) {
+            this.next.validate(mision);
+        }
+    }
+
+}
+
+
+public class ValidadorBateria extends BaseValidator {
+
+    @Override
+    public void validate(Mision mision) {
+        if (mision.drone().bateria() < 30) {
+            throw new IllegalArgumentException("El drone no tiene batería suficiente");
+        }
+        System.out.println("[ValidadorBateria] Batería suficiente");
+        nextValidator(mision);
+    }
+    
+}
+
+
+public class ValidadorDestino extends BaseValidator {
+
+    private List<String> destinosValidos = List.of(
+        "Bloque A", "Bloque B", "Bloque C", "Bloque D", "Biblioteca"
+    );
+
+    @Override
+    public void validate(Mision mision) {
+        if (!destinosValidos.contains(mision.destino())) {
+            throw new IllegalArgumentException("El destino no es válido");
+        }
+        System.out.println("[ValidadorDestino] Destino válido");
+        nextValidator(mision);
+    }
+    
+}
+
+
+public class ValidadorCarga extends BaseValidator {
+
+    @Override
+    public void validate(Mision mision) {
+
+        TipoCarga tipoCarga = mision.tipoCarga();
+        if (mision.drone().modelo().equals("DJI Mini 3") && (
+            !tipoCarga.equals(TipoCarga.SOBRE) || !tipoCarga.equals(TipoCarga.CARPETA))) {
+
+            throw new IllegalArgumentException("La carga supera el peso máximo");
+        }
+    }
+    
+}
+
+// ———————— Uso ———————————————————————————————————————————————————————
+
+    Validator chain = new ValidadorBateria();
+    chain.setNext(new ValidadorDestino())
+        .setNext(new ValidadorCarga());
+     
+    chain.validate(mision);
+```
+
+
+**Problema 3:** El sistema debe asignar el drone óptimo para cada misión. El MVP asigna el de mayor batería. En el futuro podría ser el más cercano, o el más rápido. El algoritmo debe ser intercambiable sin tocar el resto del código.
+
+#### **(a) PATRON STRATEGY:** (b) Porque el sistema debe intercambiar el algoritmo para escoger el dron óptimo sin estár acoplado a cada implementación.
+
+#### (c) Implementación de la estructura mínima en Java
+
+```java
+public class SkyCampus {
+    
+    private DroneSelectionStrategy strategy = new HighestBatteryStrategy();
+
+    List<Drone> flota = List.of(
+        new Drone("D-01", "DJI Mini 3", 85, true,  "Bloque A"),
+        new Drone("D-02", "DJI Mini 3", 42, false, "Biblioteca"),
+        new Drone("D-03", "DJI Mini 3", 91, true,  "Bloque C"),
+        new Drone("D-04", "DJI Mini 3", 18, true,  "Bloque B"),
+        new Drone("D-05", "DJI Mini 3", 67, true,  "Bloque D")
+    );
+
+    public Drone selectDrone() {
+        return this.strategy.selectDrone(flota);
+    }
+
+    public void setDroneSelectionStrategy(DroneSelectionStrategy strategy) {
+        this.strategy = strategy;
+    }
+}
+
+
+public interface DroneSelectionStrategy {
+    Drone selectDrone(List<Drone> drones);
+}
+
+
+public class HighestBatteryStrategy implements DroneSelectionStrategy {
+
+    @Override
+    public Drone selectDrone(List<Drone> drones) {
+        return drones.stream()
+            .max(Comparator.comparing(Drone::bateria))
+            .orElse(null);
+    }
+    
+}
+
+// ———————— Uso ———————————————————————————————————————————————————————
+
+    SkyCampus service = new SkyCampus();
+    service.setDroneSelectionStrategy(new HighestBatteryStrategy());
+    
+    Drone dron = service.selectDrone();
+
+```
