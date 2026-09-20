@@ -405,8 +405,66 @@ public class EstrategiaRutaEvitar implements EstrategiaRuta {
 
 ![](docs/images/DiagramaContextoSkyCampus.drawio.png)
 
+### Respuesta del agente:
 
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 5 — Diagrama de Contexto C4  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Conectores C4:** Corregiste las líneas discontinuas por líneas continuas sólidas con flechas dirigidas al sistema, cumpliendo con la notación estándar C4.  
+>  
+> **Flujo de datos de entrada:** Especificaste adecuadamente qué información envían los actores al sistema (con datos de envío en Solicitante, y con datos de drones y destinos válidos en Admin).  
+>  
+> **Simplicidad del MVP:** Mantuviste la arquitectura simple y fiel a los requerimientos del nivel Chimchar sin agregar dependencias externas ni complejidad innecesaria.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+## 06 · RF VS RNF Y PRIORIDAD MOSCOW
+### Escribir los RF y RNF del SkyCampus MVP correctamente
+
+#### REQUERIMIENTOS FUNCIONALES
+
+|Código|Requerimiento|
+|---|---|
+|SC-01|El sistema debe permitir al solicitante registrar una solicitud de reparto con los datos del envío generando una nueva misión en estado PENDIENTE|
+|SC-02|El sistema debe permitir al operador ver los drones disponibles con su batería actual en una lista filtrada de drones. |
+|SC-03|El sistema debe permitir al operador asignar manualmente un dron para realizar una solicitud de reparto mostrando el dron seleccionado. |
+
+**MoSCoW:** Los tres requerimientos funcionales entran en la categoría (Must Have). SC-01 es totalmente necesario para crear misiones que son el nucleo de SkyCampus. SC-02 también es indispensable porque es parte del flujo de selección de drones. SC-03 tambíen es obligatorio porque el operador debe poder seleccionar el dron del envío.
+
+#### REQUERIMIENTOS NO FUNCIONALES
+
+|Código|Requerimiento|
+|---|---|
+|SC-RNF-01|El tiempo de ejecución de las consultas de drones disponibles debe ser menor a 200ms.|
+|SC-RNF-02|Un operador debe ser capaz de completar la asignación de una mision en menos de tres pantallas |
+|SC-RNF-03|El sistema debe ofrecer la opción de modo Daltonismo para personas con protanopía, deuteranopía y tritanopía.|
+
+**MoSCoW:** El requerimiento SC-RNF-01 está en la categoría (Should Have) pues es un requerimiento importante pero no imprescendible en una fase de lanzamiento. El requerimiento SC-RNF-02 está en la categoría (Must Have) porque es un requerimiento totalmente necesario de usabilidad. El requerimiento SC-RNF-03 está en la categoría (Could Have) porque es un requerimiento deseable, pero de menor impacto.
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 6 — RF vs RNF y Priorización MoSCoW  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Estructura Causa-Efecto (Acción-Resultado):** Corregiste la redacción de los 3 Requerimientos Funcionales (SC-01, SC-02, SC-03) incorporando explícitamente el resultado observable del sistema ("generando una nueva misión en estado PENDIENTE", "en una lista filtrada de drones", "mostrando el dron seleccionado"), haciendo que cada RF sea atómico, completo y testeable.  
+>  
+> **Métricas en RNF:** Los Requerimientos No Funcionales mantienen métricas cuantitativas, concretas y verificables (< 200ms, < 3 pantallas, tipos específicos de acromatopsia/daltonismo).  
+>  
+> **Priorización MoSCoW Justificada:** Argumentaste adecuadamente la asignación de categorías para cada requerimiento acorde al alcance y prioridades operativas del MVP.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
