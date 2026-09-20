@@ -7,7 +7,7 @@ import model.*;
 public class MisionBuilder {
 
     private Drone drone;
-    private String origen, destino;
+    private String origen, destino, id;
     private TipoCarga tipoCarga;
 
     private EstadoMision estadoMision = EstadoMision.PENDIENTE;
@@ -15,19 +15,20 @@ public class MisionBuilder {
     private String notas = "";
     private int prioridad = 3;
 
-    public MisionBuilder drone(Drone d) { this.drone = d; return this; }
-    public MisionBuilder origen(String o) { this.origen = o; return this; }
-    public MisionBuilder destino(String d) { this.destino = d; return this; }
-    public MisionBuilder tipoCarga(TipoCarga c) { this.tipoCarga = c; return this; }
+    public MisionBuilder id(String id) { this.id = id; return this; }
+    public MisionBuilder drone(Drone drone) { this.drone = drone; return this; }
+    public MisionBuilder origen(String origen) { this.origen = origen; return this; }
+    public MisionBuilder destino(String destino) { this.destino = destino; return this; }
+    public MisionBuilder tipoCarga(TipoCarga carga) { this.tipoCarga = carga; return this; }
 
-    public MisionBuilder horaMaxima(LocalTime h) { this.horaMaxima = h; return this; }
-    public MisionBuilder notas(String n)   { this.notas   = n;  return this; }
+    public MisionBuilder horaMaxima(LocalTime hora) { this.horaMaxima = hora; return this; }
+    public MisionBuilder notas(String nota)   { this.notas = nota;  return this; }
 
     public Mision build() {
         if (origen == null || destino == null || drone == null) {
             throw new IllegalStateException("Drone, origen y destino son obligatorios");
         }
-        return new Mision(destino, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
+        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
     }
 
 }
@@ -35,10 +36,10 @@ public class MisionBuilder {
 // ———————— Uso ———————————————————————————————————————————————————————
 
     /*
-     * Mision m = new MissionBuilder()
+     * Mision m = new MisionBuilder()
      *      .drone(d03).origen("Bloque C").destino("Biblioteca")
      *      .tipoCarga(TipoCarga.SOBRE)
-     *      .horaMaxima(LocalDate.of(6, 20))
+     *      .horaMaxima(LocalTime.of(6, 20))
      *      .notas("Urgente Examen mañana")
      *      .build();
      */

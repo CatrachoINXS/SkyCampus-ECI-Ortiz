@@ -10,7 +10,7 @@ public class ValidadorCarga extends BaseValidator {
 
         TipoCarga tipoCarga = mision.tipoCarga();
         if (mision.drone().modelo().equals("DJI Mini 3") && (
-            !tipoCarga.equals(TipoCarga.SOBRE) || !tipoCarga.equals(TipoCarga.CARPETA))) {
+            !tipoCarga.equals(TipoCarga.SOBRE) && !tipoCarga.equals(TipoCarga.CARPETA))) {
 
             throw new IllegalArgumentException("La carga supera el peso máximo");
         }

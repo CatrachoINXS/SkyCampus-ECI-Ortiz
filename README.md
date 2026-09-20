@@ -53,30 +53,28 @@ List<String> cuartaConsulta = flota.stream()
 
 ### Respuesta del agente:
 
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REVISIÓN — SkyCampus [Chimchar]
-Reto: Reto 1 — 4 consultas sobre la flota
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ESTADO: APROBADO ✅
-
-Lo que está bien:
-
-Corregiste la comparación de cadenas usando .equals() en lugar de ==, asegurando la evaluación por contenido.
-
-El pipeline de Streams en cada consulta es correcto, conciso y utiliza las operaciones intermedias y terminales adecuadas.
-
-Cumple estrictamente con el nivel Chimchar: sin bucles for/while, compila perfectamente y resuelve las 4 consultas solicitadas.
-
-Antes de avanzar, responde estas preguntas sin mirar el código:
-
-En la consulta 2, ¿por qué es computacionalmente más eficiente usar anyMatch() que hacer un filter() seguido de un findFirst().isPresent() o count() > 0?
-
-Si intentáramos guardar el Stream<Drone> en una variable local y ejecutar la consulta 1 y la consulta 2 sobre esa misma variable, ¿qué excepción lanzaría Java en tiempo de ejecución y por qué?
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 1 — 4 consultas sobre la flota  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> Corregiste la comparación de cadenas usando `.equals()` en lugar de `==`, asegurando la evaluación por contenido.  
+>  
+> El pipeline de Streams en cada consulta es correcto, conciso y utiliza las operaciones intermedias y terminales adecuadas.  
+>  
+> Cumple estrictamente con el nivel Chimchar: sin bucles `for`/`while`, compila perfectamente y resuelve las 4 consultas solicitadas.  
+>  
+> Antes de avanzar, responde estas preguntas sin mirar el código:  
+>  
+> 1. En la consulta 2, ¿por qué es computacionalmente más eficiente usar `anyMatch()` que hacer un `filter()` seguido de un `findFirst().isPresent()` o `count() > 0`?  
+>  
+> 2. Si intentáramos guardar el `Stream<Drone>` en una variable local y ejecutar la consulta 1 y la consulta 2 sobre esa misma variable, ¿qué excepción lanzaría Java en tiempo de ejecución y por qué?  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 ---
 
 ## 02 · GITHUB Y GITFLOW
@@ -84,22 +82,22 @@ Si intentáramos guardar el Stream<Drone> en una variable local y ejecutar la co
 
 #### Link del REPO: https://github.com/CatrachoINXS/SkyCampus-ECI-Ortiz.git
 
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-REVISIÓN — SkyCampus [Chimchar]
-Reto: Configuración de Git, GitFlow y Modelo Inicial
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ESTADO: APROBADO ✅
-
-Lo que está bien:
-
-La estructura de ramas respeta la convención de GitFlow (main, develop y la rama de característica feature/Ortiz-modelo-drone).
-
-La historia de commits es atómica, secuencial y sigue el estándar de Conventional Commits (feat:).
-
-El grafo de Git confirma que la integración (merge) hacia la rama develop se realizó correctamente partiendo del commit inicial de main.
-```
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Configuración de Git, GitFlow y Modelo Inicial  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> La estructura de ramas respeta la convención de GitFlow (`main`, `develop` y la rama de característica `feature/Ortiz-modelo-drone`).  
+>  
+> La historia de commits es atómica, secuencial y sigue el estándar de Conventional Commits (`feat:`).  
+>  
+> El grafo de Git confirma que la integración (*merge*) hacia la rama `develop` se realizó correctamente partiendo del commit inicial de `main`.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 ---
 
@@ -116,7 +114,7 @@ El grafo de Git confirma que la integración (merge) hacia la rama develop se re
 public class MisionBuilder {
 
     private Drone drone;
-    private String origen, destino;
+    private String origen, destino, id;
     private TipoCarga tipoCarga;
 
     private EstadoMision estadoMision = EstadoMision.PENDIENTE;
@@ -124,29 +122,30 @@ public class MisionBuilder {
     private String notas = "";
     private int prioridad = 3;
 
-    public MisionBuilder drone(Drone d) { this.drone = d; return this; }
-    public MisionBuilder origen(String o) { this.origen = o; return this; }
-    public MisionBuilder destino(String d) { this.destino = d; return this; }
-    public MisionBuilder tipoCarga(TipoCarga c) { this.tipoCarga = c; return this; }
+    public MisionBuilder id(String id) { this.id = id; return this; }
+    public MisionBuilder drone(Drone drone) { this.drone = drone; return this; }
+    public MisionBuilder origen(String origen) { this.origen = origen; return this; }
+    public MisionBuilder destino(String destino) { this.destino = destino; return this; }
+    public MisionBuilder tipoCarga(TipoCarga carga) { this.tipoCarga = carga; return this; }
 
-    public MisionBuilder horaMaxima(LocalTime h) { this.horaMaxima = h; return this; }
-    public MisionBuilder notas(String n)   { this.notas   = n;  return this; }
+    public MisionBuilder horaMaxima(LocalTime hora) { this.horaMaxima = hora; return this; }
+    public MisionBuilder notas(String nota)   { this.notas = nota;  return this; }
 
     public Mision build() {
         if (origen == null || destino == null || drone == null) {
             throw new IllegalStateException("Drone, origen y destino son obligatorios");
         }
-        return new Mision(destino, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
+        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
     }
 
 }
 
 // ———————— Uso ———————————————————————————————————————————————————————
 
-    Mision m = new MissionBuilder()
+    Mision m = new MisionBuilder()
         .drone(d03).origen("Bloque C").destino("Biblioteca")
         .tipoCarga(TipoCarga.SOBRE)
-        .horaMaxima(LocalDate.of(6, 20))
+        .horaMaxima(LocalTime.of(6, 20))
         .notas("Urgente Examen mañana")
         .build();
      
@@ -223,7 +222,7 @@ public class ValidadorCarga extends BaseValidator {
 
         TipoCarga tipoCarga = mision.tipoCarga();
         if (mision.drone().modelo().equals("DJI Mini 3") && (
-            !tipoCarga.equals(TipoCarga.SOBRE) || !tipoCarga.equals(TipoCarga.CARPETA))) {
+            !tipoCarga.equals(TipoCarga.SOBRE) && !tipoCarga.equals(TipoCarga.CARPETA))) {
 
             throw new IllegalArgumentException("La carga supera el peso máximo");
         }
@@ -279,9 +278,12 @@ public class HighestBatteryStrategy implements DroneSelectionStrategy {
 
     @Override
     public Drone selectDrone(List<Drone> drones) {
+        if(drones.isEmpty()) {
+            throw new IllegalArgumentException("No hay drones para seleccionar");
+        }
         return drones.stream()
             .max(Comparator.comparing(Drone::bateria))
-            .orElse(null);
+            .get();
     }
     
 }
@@ -294,3 +296,23 @@ public class HighestBatteryStrategy implements DroneSelectionStrategy {
     Drone dron = service.selectDrone();
 
 ```
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 3 — Patrones de Diseño (Builder, Chain of Responsibility, Strategy)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **MisionBuilder:** Corregiste los nombres de parámetros, utilizaste `LocalTime.of(...)` y arreglaste la firma del constructor enviando el atributo id obligatorio.  
+>  
+> **Chain of Responsibility:** Corregiste la condición lógica booleana en `ValidadorCarga` mediante la conjunción `&& (!SOBRE && !CARPETA)`, haciendo que la regla de peso/carga funcione correctamente.  
+>  
+> **Strategy:** Eliminaste el retorno de null manejando explícitamente el caso de lista vacía con una excepción descriptiva (`IllegalArgumentException`).  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
