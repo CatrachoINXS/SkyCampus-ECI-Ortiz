@@ -398,6 +398,12 @@ public class EstrategiaRutaEvitar implements EstrategiaRuta {
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
+
+## 05 · DIAGRAMA DE CONTEXTO C4
+### Cómo encaja SkyCampus MVP en el mundo de la ECI
+
+![](docs/images/DiagramaContextoSkyCampus.drawio.png)
 
 
 
