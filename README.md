@@ -646,9 +646,61 @@ ___
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+## 11 · MOCKS CON IA
+### Generar el mock del panel de operador con el proceso correcto
 
+![](docs/images/MockPanelOperador.png)
 
+#### PROMPT
 
+```
+Actúa como diseñador UX/UI senior de sistemas de control.
+SISTEMA: SkyCampus — Panel de control de flota de drones ECI
+PANTALLA: Panel de monitoreo de la flota (vista principal del operador)
+ESTILO: Paleta de colores: El color primario de SkyCampus es el color azul marino (HEX: #003C88). Los demas colores son: El amarillo anaranjado (HEX: #FFA500) para destacar los elementos donde el usuario debería clickear. Blanco (HEX: #FFFFFF) para fondos o para contrastar con el azúl marino como texto. Gris oscuro (HEX: #343A40) usado para que los textos sean legibles en fondo blanco.
+Tipografía: La fuente para la interfaz será Rubik, una fuente legible gracias a su diseño geométrico, sus trazos limpios sin adornos y sus esquinas ligeramente redondeadas que suavizan la lectura en pantallas.
+Los colores de estado son el verde (HEX: #32CD32) usado para comunicar que un dron está disponible o que un envío se realizó con éxito. Rojo (HEX: #DC2626) para cuando hay algun error o situacion inesperada. El azúl marino de nuestra paleta para cuando un dron se encuentra en vuelo. Fondo oscuro tipo dashboard técnico.
+ACTOR: Operador de drones — necesita tomar decisiones rápidas
+DATOS A MOSTRAR POR DRONE: ID (formato D-XX), batería en %, estado
+  (DISPONIBLE/EN_VUELO/EN_CARGA/FALLO), ubicación actual
+ACCIONES DEL OPERADOR: Seleccionar drone, Asignar a misión, Ver detalle
+ESTADOS DE LA PANTALLA:
+  1. Normal: flota con drones en distintos estados
+  2. Alerta: un drone en estado FALLO (destacado visualmente)
+  3. Vacío: todos los drones en misión simultáneamente
+Nielsen: visibilidad del estado (#1), minimalismo (#8), prevención errores (#5)
+
+Genera los tres estados de la pantalla teniendo también en cuenta las siguientes entradas: drone, origen, destino, tipoCarga(SOBRE,CARPETA,LIBRO), horaMaxima(opcional), notas(opcional). Por último, la salida debe ser el código de la mision generado.
+```
+
+#### HEURISTICAS QUE SE CUMPLEN
+
+- **Visibilidad del estado del sistema (#1):** El panel mantiene informado al operador en todo momento mediante las etiquetas disponible, En vuelo y Fallo.
+  
+- **Prevención de errores (#5):** Evita fallos operativos al inhabilitar el botón de asignación y marcar en rojo a los drones con batería < 30%. 
+  
+- **Diseño minimalista y estética (#8):** Reduce la carga cognitiva al estructurar la pantalla en tarjetas limpias sobre fondo blanco, priorizando solo los 6 datos clave del dron.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 11 — Mockups con IA y Heurísticas de Nielsen  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>   
+> Al adjuntar el prompt completo que especificó la arquitectura de la interfaz (paleta HEX #003C88, #FFA500, #32CD32, #DC2626, tipografía Rubik, atributos por dron D-XX, y el flujo de campos de entrada tipoCarga, horaMaxima, etc.) junto con el desglose de las heurísticas de Nielsen (#1, #5 y #8), cumples técnicamente con todos los entregables solicitados en el enunciado del reto.  
+>  
+> **Lo que está bien:**  
+>  
+> **Prompt Completo y Detallado:** El prompt define con precisión los actores, datos de entrada/salida (código de misión generado), las variables de dominio del MVP y las restricciones estéticas.  
+>  
+> **Mapeo de Heurísticas:** Justificaste de forma directa el cumplimiento de los principios de Nielsen (#1 Visibilidad del estado, #5 Prevención de errores con el bloqueo de batería < 30%, y #8 Diseño minimalista).  
+>  
+> **Consistencia UX/UI:** La propuesta abarca la estructura visual requerida para el panel del operador dentro de las restricciones de SkyCampus.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
