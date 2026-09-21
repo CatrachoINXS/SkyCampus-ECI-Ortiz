@@ -423,6 +423,7 @@ public class EstrategiaRutaEvitar implements EstrategiaRuta {
 > **Simplicidad del MVP:** Mantuviste la arquitectura simple y fiel a los requerimientos del nivel Chimchar sin agregar dependencias externas ni complejidad innecesaria.  
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+___
 
 ## 06 · RF VS RNF Y PRIORIDAD MOSCOW
 ### Escribir los RF y RNF del SkyCampus MVP correctamente
@@ -466,9 +467,78 @@ public class EstrategiaRutaEvitar implements EstrategiaRuta {
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
+
+## 07 · PLANTILLA DOSW
+### Plantilla DOSW para el RF "Registrar mision de reparto"
+#### FUNCIONALIDAD
+|Código|SC-01|
+|---|---|
+|Nombre|Registrar misión de reparto de documento|
+|Actor|Operador de drones|
+|Precondiciones|Debe existir al menos un drone con batería ≥30% y en estado disponible|
+
+#### DATOS DE ENTRADA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|drone|Drone asignado manualmente por el operador|`Drone(id:String, modelo:String, bateria:int, disponible:boolean, ubicacion:String)`|El drone debe estár disponible y tener batería con el 30% o más|Si|
+|origen|Punto de partida de la misión de reparto|`String`|Debe ser una ubicación válida definida por el admin|Si|
+|destino|Punto de llegada de la misión de reparto|`String`|Debe ser una ubicación válida definida por el admin|Si|
+|tipoCarga|Carga que va a transportar el drone en la misión|`Enum(SOBRE,CARPETA,LIBRO)`|Debe ser uno de los tipos de carga definidos: SOBRE, CARPETA o LIBRO|Si|
+|horaMaxima|Hora máxima en la que se debe completar la misión|`LocalTime`|Debe ser posterior a la hora actual|No|
+|notas|Notas agregadas por el operador|`String`|—|No|
 
 
+#### DATOS DE SALIDA
 
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|codigo|Código de la misión generado|`String`|—|Si|
+
+#### FLUJO BÁSICO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|1|Operador|Ingresa a la opción de registrar misión de reparto|—|
+|2|Operador|Ingresa los datos del origen, el destino y el tipo de carga|—|
+|3|Sistema|Muestra los drones disponibles que tienen batería mayor al 30%|Flujo alterno 1|
+|4|Operador|Selecciona el drone y confirma el registro de la misión|—|
+|5|Sistema|Valida los datos ingresados y devuelve el id de la misión|Flujo alterno 2|
+
+#### FLUJO ALTERNO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|FA-1|Sistema|Cuando no hay drones disponibles o que tengan batería mayor al 30% se lanza una excepción con un mensaje de error indicando el problema y regresa al paso 1 |—|
+|FA-2|Sistema|Cuando los datos ingresados no son validos se lanza una excepción con un mensaje indicando el campo erroneo|—|
+
+#### REGLAS DE NEGOCIO
+
+|No.|Descripcion|
+|---|---|
+|1|Los destinos posibles son fijos: Bloque A, Bloque B, Bloque C, Bloque D y la Biblioteca|
+|2|Un dron que tenga batería menor a 30% no puede recibir asignaciones de misiones.|
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 7 — Especificación de Requerimiento Funcional (Plantilla DOSW)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Datos de Entrada:** Corregiste la obligatoriedad de tipoCarga a Si, asegurando que la entidad Mision reciba el valor requerido para la posterior validación del tipo de carga.  
+>  
+> **Flujos Alternos:** Redactaste el comportamiento paso a paso del sistema ante las excepciones (FA-1 y FA-2), indicando claramente el mensaje de error emitido y el retorno al estado seguro del flujo básico.  
+>  
+> **Reglas de Negocio:** Reemplazaste la preferencia de uso por la restricción de dominio RN-02 (batería < 30% no puede recibir asignación), definiendo una regla invariante real para la lógica de SkyCampus.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
 
 
 
