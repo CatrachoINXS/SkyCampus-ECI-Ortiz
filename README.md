@@ -540,7 +540,7 @@ ___
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 ---
 
-## 08 · Manual de Identidad y UX/UI
+## 08 · MANUAL DE IDENTIDAD Y UX/UI
 ### Definir la identidad de SkyCampus antes de diseñar una sola pantalla
 
 #### MANUAL DE IDENTIDAD MINIMO
@@ -586,8 +586,39 @@ ___
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
 
+## 09 · AGILISMO Y JIRA
+### Organizar el desarrollo del MVP en Jira correctamente
 
+#### CAPTURAS
+
+![](docs/images/captura-jira-1.png)
+
+![](docs/images/captura-jira-2.png)
+
+![](docs/images/captura-jira-3.png)
+
+![](docs/images/captura-jira-4.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 9 — Gestión de Backlog en Jira (Jerarquía y Historias de Usuario)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Estructura de Historias de Usuario:** Cada una de las tarjetas (SC-3, SC-4, SC-5) documenta correctamente la plantilla estándar Como [rol], quiero [qué], para [beneficio] dentro de su descripción.  
+>  
+> **Criterios de Aceptación:** La HU SC-4 incluye explícitamente los 2 Criterios de Aceptación en formato Dado/Cuando/Entonces, contemplando el caso de éxito (vinculación) y la regla de negocio bloqueante (batería < 30% o dron no disponible).  
+>  
+> **Jerarquía y Subtareas:** Se verifica la vinculación correcta a la Épica (SC-1) y la inclusión de las 3 subtareas técnicas (SC-6, SC-7, SC-8) en el tablero.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
