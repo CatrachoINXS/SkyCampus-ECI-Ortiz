@@ -540,6 +540,51 @@ ___
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 ---
 
+## 08 · Manual de Identidad y UX/UI
+### Definir la identidad de SkyCampus antes de diseñar una sola pantalla
+
+#### MANUAL DE IDENTIDAD MINIMO
+
+|ELEMENTO| DESCRIPCION|
+|---|---|
+|Paleta de colores|El color primario de SkyCampus es el color azul marino (HEX: #003C88) el cual representa estabilidad, confianza y calma y es la base que le da seriedad a la marca. Los demas colores son: <br><br>El amarillo anaranjado (HEX: #FFA500) el cual representala acción, alerta e interactibilidad y se usa para destacar los elementos donde el usuario debería clickear.  <br><br> Blanco (HEX: #FFFFFF) para representar legibilidad y orden, usado principalmente para fondos o para contrastar con el azúl marino como texto. <br><br>Gris oscuro (HEX: #343A40) usado para que los textos sean legibles en fondo blanco.|
+|Tipografía|La fuente para la interfaz será Rubik, una fuente legible gracias a su diseño geométrico, sus trazos limpios sin adornos y sus esquinas ligeramente redondeadas que suavizan la lectura en pantallas. Se escogió porque diferentes investigaciones sobre la legibilidad de las fuentes demuestran que las letras con formas más anchas aumentan la velocidad de reconocimiento de caracteres hasta en un 13%. Un estudio de eyetracking publicado en ResearchGate demostró que las fuentes demasiado delgadas aumentan la carga cognitiva y ralentizan la lectura en pantallas. Rubik al ser diseñada con trazos sólidos mantiente una consistencia ideal que no exige mayor esfuerzo al ojo humano.|
+|Colores de estado|El verde (HEX: #32CD32) que representa disponibilidad, éxito y confirmación usado para comunicar que un dron está disponible o que un envío se realizó con éxito. <br><br> Rojo (HEX: #DC2626) para representar urgencia cuando hay algun error o situacion inesperada.<br><br> El azúl marino de nuestra paleta para cuando un dron se encuentra en vuelo |
+
+#### MOCK GENERADO POR IA
+
+![](docs/images/PanelMonitoreoMockIA.jfif)
+
+#### PRINCIPIOS DE NIELSEN CUMPLIDOS
+
+**#1. Visibilidad del estado del sistema:** Cada uno de los cinco drones muestra su estado actual en una etiqueta en un vistazo, sin necesidad de clicks.
+
+**#2. Coincidencia entre el sistema y el mundo real:** Se utiliza un lenguaje relacionado con el contexto real de la operación con palabras como 'En vuelo', 'Mision', 'Dron' y 'batería'.
+
+**#6. Reconocer en lugar de recordar:** El operador no tiene que memorizar qué significa un código o qué número corresponde a qué campus o dron.
+
+**#8. Estética y diseño minimalista:** En lugar de poner toda la infomacion, como las notas, horaMaxima, modelo del dron, etc. Las tarjetas individuales con información esencial reducen la carga cognitiva.
+
+**#9. Reconocimiento, diagnóstico y recuperación de errores:** En lugar de mostrar un código numérico ambiguo, la tarjeta del SC-03 presenta un mensaje de error explícito y constructivo en lenguaje claro.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 8 — Manual de Identidad y UX/UI  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Manual de Identidad:** Definiste claramente los códigos HEX (#003C88, #FFA500, #FFFFFF, #343A40, #32CD32, #DC2626), la tipografía (Rubik) con justificación técnica de legibilidad, y el mapeo de colores según el estado operativo de los drones.  
+>  
+> **Mockup de la Interfaz:** La imagen generada refleja fielmente el manual propuesto: muestra el panel de monitoreo con la flota completa de 5 drones (SC-01 a SC-05), respetando la jerarquía visual, la paleta cromática definida y las métricas en tiempo real (batería %, ubicación y estados).  
+>  
+> **Evaluación de Heurísticas de Nielsen:** Justificaste adecuadamente el cumplimiento de los 5 principios seleccionados (#1, #2, #6, #8 y #9), demostrando cómo el diseño apoya la toma de decisiones del operador (como el manejo claro de alertas y errores en el dron SC-03 con batería inferior al 30%).  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
