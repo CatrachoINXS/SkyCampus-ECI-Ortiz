@@ -620,6 +620,32 @@ ___
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
+
+## 10 · DIAGRAMA DE CASOS DE USO
+### Diagrama de CU para el RF "Registrar mision de reparto"
+
+![](docs/images/DiagramaCasosUso.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 10 — Diagrama de Casos de Uso UML  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Límite del Sistema (System Boundary):** Incorporaste el recuadro que delimita el sistema System / SkyCampus, manteniendo los casos de uso adentro y los actores afuera.  
+>  
+> **Tres Actores del MVP:** Representaste a los tres roles principales (Solicitante, Operador y Admin), asignando a cada uno un caso de uso correspondiente dentro del alcance de la aplicación.  
+>  
+> **Relaciones UML y Condición Explicitada:** Aplicaste correctamente la relación include» hacia Validar disponibilidad del drone y la relación «extend» desde Enviar alerta de batería baja hacia Registrar misión de reparto, adjuntando la nota con la condición explícita Condición: [Si batería del drone seleccionado es < 30%].  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
 
 
 
