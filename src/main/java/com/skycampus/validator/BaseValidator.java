@@ -19,13 +19,3 @@ public abstract class BaseValidator implements Validator {
     }
 
 }
-
-// ———————— Uso ———————————————————————————————————————————————————————
-
-    /*
-     * Validator chain = new ValidadorBateria();
-     * chain.setNext(new ValidadorDestino())
-     *      .setNext(new ValidadorCarga());
-     * 
-     * chain.validate(mision);
-     */
