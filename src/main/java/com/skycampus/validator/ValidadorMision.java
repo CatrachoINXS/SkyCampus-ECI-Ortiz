@@ -4,14 +4,19 @@ import com.skycampus.model.Drone;
 
 public class ValidadorMision {
 
-    public boolean tieneBateriaSuficiente(Drone d) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'tieneBateriaSuficiente'");
+    public boolean tieneBateriaSuficiente(Drone drone) {
+        return new ValidadorBateria().tieneBateriaSuficiente(drone);
     }
 
-    public Object validarDestino(String string) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'validarDestino'");
+    public void validarDestino(String destino) {
+        new ValidadorDestino().validarDestino(destino);
+    }
+
+    public boolean droneEstaDisponible(Drone drone) {
+        if (drone == null) {
+            return false;
+        }
+        return drone.disponible();
     }
     
 }

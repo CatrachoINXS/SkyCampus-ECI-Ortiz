@@ -1,5 +1,5 @@
 package com.skycampus.exception;
 
-public class DestinoInvalidoException extends Exception {
+public class DestinoInvalidoException extends RuntimeException {
     
 }

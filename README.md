@@ -702,9 +702,106 @@ Genera los tres estados de la pantalla teniendo también en cuenta las siguiente
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
 
+## 12 · TDD
+### TDD para el ValidadorMision de SkyCampus
 
+### TEST
 
+```java
+public class ValidadorMisionTest {
+    private ValidadorMision v;
+
+    @BeforeEach
+    void setUp() { v = new ValidadorMision(); }
+
+    @Test
+    @DisplayName("Drone con batería ≥ 30% puede ser asignado")
+    void droneBateriaSuficiente_puedeAsignarse() {
+        // ARRANGE
+        Drone d = new Drone("D-01", "DJI Mini 3", 85, true, "Bloque A");
+        // ACT
+        boolean resultado = v.tieneBateriaSuficiente(d);
+        // ASSERT
+        assertTrue(resultado);
+    }
+
+    @Test
+    @DisplayName("Drone con batería de 30% puede ser asignado")
+    void droneBateriaJusta_puedeAsignarse() {
+        Drone d = new Drone("D-01", "DJI Mini 3", 30, true, "Bloque A");
+        boolean resultado = v.tieneBateriaSuficiente(d);
+        assertTrue(resultado);
+    }
+
+    @Test
+    @DisplayName("Drone con batería < 30% NO puede ser asignado")
+    void droneBateriaCritica_noAsignable() {
+        Drone d = new Drone("D-04", "DJI Mini 3", 18, true, "Bloque B");
+        assertFalse(v.tieneBateriaSuficiente(d));
+    }
+
+    @Test
+    @DisplayName("Destino válido no lanza excepcion")
+    void destinoValido_NolanzaExcepcion() {
+        assertDoesNotThrow(() -> v.validarDestino("Bloque A"));
+    }
+
+    @Test
+    @DisplayName("Destino inválido lanza excepción")
+    void destinoInvalido_lanzaExcepcion() {
+        assertThrows(DestinoInvalidoException.class,
+            () -> v.validarDestino("Edificio Inexistente"));
+    }
+
+    @Test
+    @DisplayName("Destino nulo lanza excepción")
+    void destinoNulo_lanzaExcepcion() {
+        assertThrows(DestinoInvalidoException.class,
+            () -> v.validarDestino(null));
+    }
+
+    @Test
+    @DisplayName("Drone disponible puede ser asignado")
+    void droneDisponible_puedeAsignarse() {
+        Drone d = new Drone("D-01", "DJI Mini 3", 85, true, "Bloque A");
+        assertTrue(v.droneEstaDisponible(d));
+    }
+
+    @Test
+    @DisplayName("Drone ocupado no puede ser asignado")
+    void droneNoDisponible_noPuedeAsignarse() {
+        Drone d = new Drone("D-01", "DJI Mini 3", 85, false, "Bloque A");
+        assertFalse(v.droneEstaDisponible(d));
+    }
+
+    @Test
+    @DisplayName("Drone con referencia nula no puede ser asignado")
+    void droneNulo_noPuedeAsignarse() {
+        Drone drone = null;
+        assertFalse(v.droneEstaDisponible(drone));
+    }
+}
+```
+
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 12 — TDD con JUnit 5 en ValidadorMision  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Suite Completa de Pruebas (9 Pruebas / Patrón AAA):** Implementaste los 9 métodos @Test distribuidos equitativamente entre las tres responsabilidades (tieneBateriaSuficiente, validarDestino y droneEstaDisponible), contemplando casos felices, límites exactos (30%), valores nulos y excepciones.  
+>  
+> **Integración del Ejecutor:** La captura del Test Runner confirma la ejecución exitosa de los 9 casos en VERDE ✅ (ValidadorMisionTest).  
+>  
+> **Diseño y Delegación:** La clase ValidadorMision actúa como una fachada limpia que delega la validación de batería y destinos a sus validadores correspondientes, manejando correctamente los valores nulos (drone == null) para evitar NullPointerException.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
