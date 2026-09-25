@@ -836,7 +836,34 @@ public class ValidadorMisionTest {
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
 
+## 14 · SONARQUBE — ANÁLISIS ESTÁTICO DE CALIDAD
+### Analizar la calidad del código con SonarQube
+
+![](docs/images/sonarqube-overview.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Integración y Análisis SonarQube  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Resumen de Métricas Registradas en el Análisis:**  
+> **(a)** Calificación general de mantenibilidad: A  
+> **(b)** Número de Code Smells (Maintainability issues): 0 (Se evidencia la resolución de 17 problemas cerrados en el historial).  
+> **(c)** Deuda técnica estimada (MTTR para mantenibilidad): 19 min (Registrada tras la corrección masiva de hallazgos).  
+>  
+> **Lo que está bien:**  
+>  
+> **Conexión Exitosa:** El proyecto SkyCampus-ECI-Ortiz se encuentra debidamente vinculado a SonarQube Cloud con 384 líneas de código analizadas.  
+>  
+> **Mejora en Mantenibilidad:** La gráfica "Maintainability issues closed over time" valida el cierre de 17 hallazgos de calidad de software, logrando la calificación máxima A en Mantenibilidad.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
