@@ -7,7 +7,9 @@ import com.skycampus.model.*;
 public class MisionBuilder {
 
     private Drone drone;
-    private String origen, destino, id;
+    private String origen;
+    private String destino;
+    private String id;
     private TipoCarga tipoCarga;
 
     private EstadoMision estadoMision = EstadoMision.PENDIENTE;

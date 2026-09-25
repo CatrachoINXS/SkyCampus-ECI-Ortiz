@@ -803,6 +803,38 @@ public class ValidadorMisionTest {
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
+
+## 13 · JaCoCo — COBERTURA DE CÓDIGO
+### Medir y limpiar el código del MVP con JaCoCo y SonarQube
+
+### Covertura de ValidadorMision con JaCoCo
+
+![](docs/images/ValidadorMision-coverage.png)
+
+### Issues del análisis estático con SonarQube
+#### ANTES
+![](docs/images/sonarqube-issues.png)
+
+#### DESPUES
+![](docs/images/sonarqube-issues-2.png)
+
+### Respuesta del Agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Cobertura JaCoCo y Análisis SonarQube  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Resolución Completa de Issues:** La nueva captura de SonarQube confirma "All issues 0" y muestra el mensaje "No Issues. Hooray!". Se eliminaron adecuadamente todos los Code Smells (incluyendo las impresiones por consola) y la deuda técnica quedó en 0 min.  
+>  
+> **Cobertura de Código (JaCoCo):** Se mantiene el 100% de Line Coverage y 100% de Branch Coverage en ValidadorMision, superando con éxito la meta mínima requerida del 80%.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
