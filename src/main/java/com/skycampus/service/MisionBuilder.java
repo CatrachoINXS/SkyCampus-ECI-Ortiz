@@ -11,6 +11,7 @@ public class MisionBuilder {
     private String destino;
     private String id;
     private TipoCarga tipoCarga;
+    private int pesoPaqueteGramos;
 
     private EstadoMision estadoMision = EstadoMision.PENDIENTE;
     private LocalTime horaMaxima;
@@ -23,6 +24,7 @@ public class MisionBuilder {
     public MisionBuilder destino(String destino) { this.destino = destino; return this; }
     public MisionBuilder tipoCarga(TipoCarga carga) { this.tipoCarga = carga; return this; }
     public MisionBuilder prioridad(Prioridad prioridad) { this.prioridad = prioridad; return this; }
+    public MisionBuilder peso(int peso) {this.pesoPaqueteGramos = peso; return this;}
 
     public MisionBuilder horaMaxima(LocalTime hora) { this.horaMaxima = hora; return this; }
     public MisionBuilder notas(String nota)   { this.notas = nota;  return this; }
@@ -31,7 +33,7 @@ public class MisionBuilder {
         if (origen == null || destino == null || drone == null) {
             throw new IllegalStateException("Drone, origen y destino son obligatorios");
         }
-        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
+        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima, pesoPaqueteGramos);
     }
 
 }

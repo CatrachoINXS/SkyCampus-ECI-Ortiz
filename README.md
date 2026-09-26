@@ -1151,42 +1151,91 @@ La prueba de que añadir un 4to observador no requiere modificar GestorFlota es 
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
 
+## 04 · Principios SOLID
 
+### Single Responsibility
+(a) `GestorDrone` asumía muchas responsabilidades, asignaba misiones, guardaba en base de datos, enviaba alertas, generaba reportes y calculaba las rutas.
 
+(b) En la versión 2 se delegó cada responsabilidad a clases especializadas: AsignadorMision que se encarga exclusivamente de coordinar la asignación o SistemaLog que solo registra eventos. Es decir estamos separando los servicios en varias clases con una unica responsabilidad.
 
+### Open/Closed
+Para cambiar la estrategia de selección de un dron o agregar un nuevo tipo de notificación, era obligatorio modificar el código de GestorDrone mediante condicionales if-else.
 
+Gracias al patrón Strategy (DroneSelectionStrategy) y al patrón Observer (ObservadorDrone), añadir un nuevo algoritmo o un nuevo suscriptor se realiza creando una nueva clase que implemente la interfaz correspondiente, sin alterar GestorMisiones ni GestorFlota.
 
+### Dependency Inversion
+(a) GestorDrone dependía directamente de operadores concretos y no de abstacciones.
 
+(b) En la version 2 ya se depende de abstracciones como ObservadorDrone y DroneSelectionStrategy y las estrategias concretas se agregan con setters
 
+### PRUEBA
 
+```java
+public class GestorMisionesStrategyTest {
 
+    private List<Drone> flota;
+    private Mision mision;
 
+    @BeforeEach
+    void setUp() {
 
+        final String modelo = "DJI Mini 3";
 
+        flota = List.of(
+            new Drone("D-01", modelo, 85, true,  "Bloque A", TipoDrone.CARGO),
+            new Drone("D-02", modelo, 42, false, "Biblioteca", TipoDrone.EXPRESS),
+            new Drone("D-03", modelo, 91, true,  "Bloque C", TipoDrone.MINI),
+            new Drone("D-04", modelo, 18, true,  "Bloque B", TipoDrone.EXPRESS),
+            new Drone("D-05", modelo, 67, true,  "Bloque D", TipoDrone.CARGO)
+        );
 
+        mision = new MisionBuilder()
+            .id("M1")
+            .drone(flota.get(3))
+            .origen("Bloque A")
+            .destino("Bloque B")
+            .tipoCarga(TipoCarga.CARPETA)
+            .prioridad(Prioridad.NORMAL)
+            .peso(300)
+            .build();
+    }
 
+    @Test 
+    @DisplayName("GestorMisiones funciona con cualquier EstrategiaAsignacion sin modificar su código")
+    public void gestorMisionesFuncionaConCualquierEstrategiaAsignacion() {
+        DroneSelectionStrategy estrategia = new HighestBatteryStrategy();
+        GestorMisiones gestor = new GestorMisiones(estrategia);
 
+        Optional<Drone> dron1 = gestor.asignarDrone(flota, mision);
+        assertEquals("D-03", dron1.get().id());
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        gestor.setStrategy(new CompatibleTypeStrategy());
+        Optional<Drone> dron2 = gestor.asignarDrone(flota, mision);
+        assertEquals("D-01", dron2.get().id());
+    }
+    
+}
+```
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Justificación SOLID y Prueba de Intercambiabilidad (OCP)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Justificación SRP:** Identificación clara de la violación en el MVP (acumulación de múltiples responsabilidades no relacionadas en GestorDrone) y explicación precisa de la delegación de responsabilidades en la v2 (AsignadorMision, SistemaLog, etc.).  
+>  
+> **Justificación OCP:** Explicación correcta sobre la eliminación de condicionales if-else acoplados, permitiendo extender el comportamiento del sistema mediante la implementación de las interfaces DroneSelectionStrategy y ObservadorDrone sin alterar las clases centrales.  
+>  
+> **Justificación DIP:** Identificación acertada del desacoplamiento, pasando de depender de clases concretas a depender de abstracciones inyectables mediante constructores y setters.  
+>  
+> **Prueba Unitaria de Intercambiabilidad (GestorMisionesStrategyTest):** La prueba demuestra de forma práctica y limpia cómo GestorMisiones puede alternar en tiempo de ejecución entre HighestBatteryStrategy y CompatibleTypeStrategy mediante setStrategy(), manteniendo intacta su estructura interna.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 

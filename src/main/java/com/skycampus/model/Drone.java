@@ -14,6 +14,10 @@ public record Drone (
         this(id, modelo, bateria, disponible, ubicacion, EstadoDrone.DISPONIBLE, TipoDrone.CARGO);
     }
 
+    public Drone(String id, String modelo, int bateria, boolean disponible, String ubicacion, TipoDrone tipo) {
+        this(id, modelo, bateria, disponible, ubicacion, EstadoDrone.DISPONIBLE, tipo);
+    }
+
     public int capacidadGramos() {
         return this.tipo.capacidadGramos();
     }
