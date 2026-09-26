@@ -880,3 +880,128 @@ public class ValidadorMisionTest {
 
 
 
+
+# **Monferno - SkyCampus v2**
+
+- **Nombre:** Cristian Camilo Ortiz Sánchez
+- **Carnet:** 1000105286
+- **Correo:** `cristian.ortiz-s@mail.escuelaing.edu.co`
+---
+
+La ECI expandió la flota. Ahora hay 20 drones de 3 tipos: `Mini` (hasta 500g, ágil), `Cargo` (hasta 2kg, lento) y `Express` (hasta 800g, rápido, batería limitada). Los paquetes tienen peso en gramos, nivel de prioridad (`URGENTE/NORMAL/BAJO`) y en algunos casos restricciones específicas.
+
+**Novedades v2:** El sistema asigna automáticamente el drone óptimo según el peso del paquete y la batería disponible. Cada vez que un drone cambia de estado (`DISPONIBLE → EN_VUELO → ATERRIZANDO → DISPONIBLE`), el sistema notifica automáticamente al operador y al sistema de log. Hay un nuevo actor: el Técnico de mantenimiento que gestiona drones en estado `FALLO`.
+
+**Nuevos tipos:** `TipoDrone: Enum(MINI, CARGO, EXPRESS)  Prioridad: Enum(URGENTE, NORMAL, BAJO)`
+
+## 01 · STREAMS & LAMBDAS
+
+#### 1. Mapa tipo de drone → número de misiones completadas hoy.
+
+```java
+Map<TipoDrone, Long> primeraConsulta = misiones.stream()
+    .filter(m -> m.estado() == EstadoMision.ENTREGADA)
+    .collect(Collectors.groupingBy(m -> m.drone().tipo(), Collectors.counting()));
+
+        
+```
+
+#### 2. Drone con más misiones completadas (usa groupingBy + counting + max)
+```java
+Drone segundaConsulta = misiones.stream()
+    .filter(m -> m.estado() == EstadoMision.ENTREGADA)
+    .collect(Collectors.groupingBy(m -> m.drone(), Collectors.counting()))
+    .entrySet().stream()
+    .max(Comparator.comparingLong(v -> v.getValue()))
+    .map(d -> d.getKey())
+    .get();
+
+         
+```
+#### 3. Porcentaje de misiones fallidas sobre el total.
+```java
+double terceraConsulta = ((double) misiones.stream()
+    .filter(m -> m.estado() == EstadoMision.FALLIDA)
+    .count() / misiones.size()) * 100;
+
+         
+```
+#### 4. ¿Existe alguna misión URGENTE en estado PENDIENTE hace más de 10 minutos?.
+
+```java
+boolean cuartaConsulta = misiones.stream()
+    .anyMatch(m -> (m.estado() == EstadoMision.PENDIENTE && 
+         m.prioridad() == Prioridad.URGENTE));
+```
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Consultas Estadísticas con Java Streams  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Consulta 1:** Correcto agrupamiento por TipoDrone y conteo de misiones entregadas usando groupingBy y counting().  
+>  
+> **Consulta 2:** Correcto hallazgo del dron con más misiones usando max() y mapeo directo. Se acepta el lanzamiento intencional de la excepción NoSuchElementException según tu especificación de dominio.  
+>  
+> **Consulta 3:** ¡Se corrigió el error de división entera! El cast explicito a (double) permite calcular el porcentaje real con decimales.  
+>  
+> **Consulta 4:** Se valida correctamente la existencia de misiones pendientes y urgentes respetando los campos definidos en el record Mision.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
