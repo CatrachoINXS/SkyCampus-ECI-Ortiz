@@ -15,13 +15,14 @@ public class MisionBuilder {
     private EstadoMision estadoMision = EstadoMision.PENDIENTE;
     private LocalTime horaMaxima;
     private String notas = "";
-    private int prioridad = 3;
+    private Prioridad prioridad = Prioridad.NORMAL;
 
     public MisionBuilder id(String id) { this.id = id; return this; }
     public MisionBuilder drone(Drone drone) { this.drone = drone; return this; }
     public MisionBuilder origen(String origen) { this.origen = origen; return this; }
     public MisionBuilder destino(String destino) { this.destino = destino; return this; }
     public MisionBuilder tipoCarga(TipoCarga carga) { this.tipoCarga = carga; return this; }
+    public MisionBuilder prioridad(Prioridad prioridad) { this.prioridad = prioridad; return this; }
 
     public MisionBuilder horaMaxima(LocalTime hora) { this.horaMaxima = hora; return this; }
     public MisionBuilder notas(String nota)   { this.notas = nota;  return this; }

@@ -13,12 +13,12 @@ public class Main {
         final String modelo = "DJI Mini 3";
 
         List<Drone> flota = List.of(
-        new Drone("D-01", modelo, 85, true,  "Bloque A"),
-        new Drone("D-02", modelo, 42, false, "Biblioteca"),
-        new Drone("D-03", modelo, 91, true,  "Bloque C"),
-        new Drone("D-04", modelo, 18, true,  "Bloque B"),
-        new Drone("D-05", modelo, 67, true,  "Bloque D")
-    );
+            new Drone("D-01", modelo, 85, true,  "Bloque A"),
+            new Drone("D-02", modelo, 42, false, "Biblioteca"),
+            new Drone("D-03", modelo, 91, true,  "Bloque C"),
+            new Drone("D-04", modelo, 18, true,  "Bloque B"),
+            new Drone("D-05", modelo, 67, true,  "Bloque D")
+        );
 
         List<String> primeraConsulta = flota.stream()
             .filter(d -> d.bateria() >= 50 && d.disponible())
