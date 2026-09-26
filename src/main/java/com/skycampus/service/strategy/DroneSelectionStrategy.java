@@ -1,9 +1,10 @@
 package com.skycampus.service.strategy;
 
 import java.util.List;
+import java.util.Optional;
 
-import com.skycampus.model.Drone;
+import com.skycampus.model.*;
 
 public interface DroneSelectionStrategy {
-    Drone selectDrone(List<Drone> drones);
+    Optional<Drone> selectDrone(List<Drone> drones, Mision mision);
 }

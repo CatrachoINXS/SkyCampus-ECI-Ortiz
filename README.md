@@ -994,9 +994,162 @@ boolean cuartaConsulta = misiones.stream()
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+---
+
+## 03 · Patrones de Diseño
+
+### PATRON STRATEGY
+
+```java
+public interface DroneSelectionStrategy {
+    Optional<Drone> selectDrone(List<Drone> drones, Mision mision);
+}
 
 
+public class CompatibleTypeStrategy implements DroneSelectionStrategy {
 
+    @Override
+    public Optional<Drone> selectDrone(List<Drone> drones, Mision mision) {
+        return drones.stream()
+            .filter(Drone::disponible)
+            .filter(d -> d.tipoCompatible(mision))
+            .findFirst();
+    }
+    
+}
+
+
+public class HighestBatteryStrategy implements DroneSelectionStrategy {
+
+    @Override
+    public Optional<Drone> selectDrone(List<Drone> drones, Mision mision) {
+        return drones.stream()
+            .filter(Drone::disponible)
+            .filter(d -> d.capacidadGramos() >= mision.pesoPaqueteGramos())
+            .max(Comparator.comparing(Drone::bateria));
+    }
+    
+}
+
+
+public class LessAcumulatedUsageStrategy implements DroneSelectionStrategy {
+
+    private List<Mision> historialMisiones;
+
+    public LessAcumulatedUsageStrategy(List<Mision> historialMisiones) {
+        this.historialMisiones = historialMisiones;
+    }
+
+    @Override
+    public Optional<Drone> selectDrone(List<Drone> drones, Mision mision) {
+        return drones.stream()
+            .filter(Drone::disponible)
+            .filter(d -> d.capacidadGramos() >= mision.pesoPaqueteGramos())
+            .min(Comparator.comparing(d -> historialMisiones.stream()
+                .filter(m -> m.drone().equals(d)).count()));
+    }
+    
+}
+
+
+public class GestorMisiones {
+    
+    private DroneSelectionStrategy strategy;
+
+    public GestorMisiones(DroneSelectionStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public void setStrategy(DroneSelectionStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public Optional<Drone> asignarDrone(List<Drone> flota, Mision mision) {
+        return strategy.selectDrone(flota, mision);
+    }
+
+}
+```
+### PATRON OBSERVER
+
+```java
+public interface ObservadorDrone {
+    void onEstadoCambiado(Drone drone, EstadoDrone nuevo);
+}
+
+
+public class PanelOperador implements ObservadorDrone {
+    private static final Logger logger = Logger.getLogger(PanelOperador.class.getName());
+
+    @Override
+    public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
+        logger.info(String.format("[PANEL] Drone %s cambio de estado a: %s", drone.id(), nuevoEstado));
+    }
+}
+
+
+public class SistemaLog implements ObservadorDrone {
+    private static final Logger logger = Logger.getLogger(SistemaLog.class.getName());
+
+    @Override
+    public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
+        logger.info(String.format("[AUDITORÍA LOG] Dron %s. Estado actual: %s", drone.id(), nuevoEstado));
+    }
+}
+
+
+public class AlertaTecnico implements ObservadorDrone {
+    private static final Logger logger = Logger.getLogger(AlertaTecnico.class.getName());
+
+    @Override
+    public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
+        if (nuevoEstado == EstadoDrone.FALLO) {
+            logger.warning(String.format("[ALERTA TÉCNICA] El dron %s entró en estado FALLO.", drone.id()));
+        }
+    }
+}
+
+
+public class GestorFlota {
+    
+    private final List<ObservadorDrone> obs = new ArrayList<>();
+    void suscribir(ObservadorDrone o) { obs.add(o); }
+    Drone cambiarEstado(Drone d, EstadoDrone nuevo) {
+        Drone dronActualizado = new Drone(
+            d.id(),
+            d.modelo(),
+            d.bateria(),
+            d.disponible(),
+            d.ubicacion(),
+            nuevo,
+            d.tipo()
+        );
+        obs.forEach(o -> o.onEstadoCambiado(dronActualizado, nuevo));
+        return dronActualizado;
+    }
+}
+```
+
+La prueba de que añadir un 4to observador no requiere modificar GestorFlota es que si una parte de SkyCampus quisiera ser notificada cuando cambia el estado de un dron solo tendria que extender de ObservadorDrone y estár suscrita a los observers de GestorFlota, lo cual se puede hacer sin modificar la clase GestorFlota.
+
+### Respuesta del Agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Patrones Strategy y Observer (OCP)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Patrón Strategy:** Excelente refactorización. Se implementaron correctamente las 3 estrategias solicitadas (HighestBatteryStrategy, LessAcumulatedUsageStrategy y CompatibleTypeStrategy). La remoción del throw IllegalArgumentException en HighestBatteryStrategy respeta perfectamente el contrato del `Optional<Drone>`.  
+>  
+> **Patrón Observer & Inmutabilidad:** En GestorFlota.cambiarEstado corregiste el pase del objeto a los suscriptores, notificando con dronActualizado en lugar de la instancia vieja d. Además, el uso de java.util.logging.Logger en los observadores es impecable para mantener SonarQube libre de Code Smells.  
+>  
+> **Cumplimiento del OCP:** La explicación enviada justifica con precisión el Principio de Abierto/Cerrado (OCP). Dado que GestorFlota depende únicamente de la abstracción ObservadorDrone a través de su método suscribir(ObservadorDrone o), cualquier nuevo módulo (un 4to observador como AuditoriaSeguridad o un dashboard en tiempo real) solo necesita implementar la interfaz ObservadorDrone y registrarse dinámicamente en tiempo de ejecución. La clase GestorFlota se mantiene cerrada a modificación pero abierta a extensión, cumpliendo al 100% el objetivo del reto.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
