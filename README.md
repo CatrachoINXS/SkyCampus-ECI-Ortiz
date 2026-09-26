@@ -901,9 +901,7 @@ La ECI expandió la flota. Ahora hay 20 drones de 3 tipos: `Mini` (hasta 500g, �
 ```java
 Map<TipoDrone, Long> primeraConsulta = misiones.stream()
     .filter(m -> m.estado() == EstadoMision.ENTREGADA)
-    .collect(Collectors.groupingBy(m -> m.drone().tipo(), Collectors.counting()));
-
-        
+    .collect(Collectors.groupingBy(m -> m.drone().tipo(), Collectors.counting()));  
 ```
 
 #### 2. Drone con más misiones completadas (usa groupingBy + counting + max)
@@ -914,17 +912,13 @@ Drone segundaConsulta = misiones.stream()
     .entrySet().stream()
     .max(Comparator.comparingLong(v -> v.getValue()))
     .map(d -> d.getKey())
-    .get();
-
-         
+    .get();     
 ```
 #### 3. Porcentaje de misiones fallidas sobre el total.
 ```java
 double terceraConsulta = ((double) misiones.stream()
     .filter(m -> m.estado() == EstadoMision.FALLIDA)
-    .count() / misiones.size()) * 100;
-
-         
+    .count() / misiones.size()) * 100;  
 ```
 #### 4. ¿Existe alguna misión URGENTE en estado PENDIENTE hace más de 10 minutos?.
 

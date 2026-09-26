@@ -3,6 +3,6 @@ package com.skycampus.model;
 public class AsignadorMision {
     
     public void asignarMision(Drone dron, Mision mision) {
-        // lógica de asignación
+        // Juan implementa la asignacion automática
     }
 }
