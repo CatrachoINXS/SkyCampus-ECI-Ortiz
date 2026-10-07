@@ -1449,3 +1449,26 @@ El panel superior incluye métricas de resumen por categorías para evitar sobre
 > **Cumplimiento de Criterios:** Evidencia visual validada correctamente frente al DoD estipulado.
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 10 · Casos de Uso
+### Diagrama de casos de uso
+![](docs/images/DiagramaCasosUsoV2.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Diagrama de Casos de Uso (v2) — Módulo de Misiones  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Evidencias Verificadas:**
+>
+> **Herencia de Actores:** Correcta aplicación de la generalización entre Técnico de mantenimiento y Operador, evitando la duplicación de asociaciones de Casos de Uso[cite: 14].
+>
+> **Inclusiones (`<<include>>`):** 2 relaciones `<<include>> `representadas correctamente con la dirección de la flecha discontinua hacia los Casos de Uso requeridos (Validar disponibilidad y Validar condiciones climáticas)[cite: 14].
+>
+> **Extensiones y Condiciones (`<<extend>>`):** 2 relaciones `<<extend>>` configuradas adecuadamente apunten al Caso de Uso base y acompañadas de sus notas de condición de extensión explícitas (Batería < 30% y Batería 30-40%)[cite: 14].
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
