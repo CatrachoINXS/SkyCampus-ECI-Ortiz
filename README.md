@@ -1422,3 +1422,30 @@ El panel superior incluye métricas de resumen por categorías para evitar sobre
 > **Justificación de Leyes UX:** Excelente aplicación de la **Ley de Fitts** al destacar los botones de acción principales (`ASIGNAR MISIÓN` / `Asignar misión`) con contraste y áreas de clic amplias[cite: 5, 7], y de la **Ley of Hick** al simplificar la carga cognitiva del operador mediante el resumen de métricas de flota por estado y el uso de controles segmentados[cite: 5, 6].
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 09 · Agilismo
+![](docs/images/captura-jira-5.png)
+
+### DoD
+    Pruebas unitarias con cobertura JaCoCo ≥80%
+    SonarQube: 0 bugs, 0 vulnerabilidades
+    Todos los criterios Gherkin de la HU pasan
+    Mergeado a develop con flujo GitFlow correcto
+
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Planificación de Sprint 1, Gherkin y Definition of Done (DoD)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Evidencias Verificadas:**
+>
+> **Configuración en Jira:** Se evidencia el Sprint 1 configurado con 5 HUs (SC-9 a SC-13) sumando 16 SP, dentro de la capacidad de 20 SP[cite: 8].
+>
+> **Criterios Gherkin:** Se constata que las 5 HUs cuentan con sus 2 escenarios Gherkin completos y detallados en Jira (Dado que / Cuando / Entonces)[cite: 9, 10, 11, 12, 13].
+>
+> **Cumplimiento de Criterios:** Evidencia visual validada correctamente frente al DoD estipulado.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
