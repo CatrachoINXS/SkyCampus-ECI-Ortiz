@@ -1237,7 +1237,28 @@ public class GestorMisionesStrategyTest {
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+## 05 · Diagrama de Contexto
 
+![](docs/images/DiagramaContextoSkyCampusV2.drawio.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Diagrama de Contexto (v1 MVP vs. v2)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Análisis de la Imagen e Integración:** El diagrama actualizado refleja con precisión los límites del sistema y las interacciones para la versión 2. Incorpora correctamente al nuevo actor **Técnico de mantenimiento** con el flujo "Registra mantenimiento de la flota", mantiene a los 3 actores principales (Operador, Solicitante y Admin) con sus responsabilidades del MVP, y conecta los **3 nuevos sistemas externos** (API Meteorológica, Control Aéreo ECI y Sistema de Alertas) con sus respectivos flujos etiquetados[cite: 1].
+>
+> **Crecimiento del Sistema:** Explicación clara de la evolución de 3 a 4 actores, la transición de 0 a 3 integraciones externas y la adición de 4 nuevos flujos de información orientados a la seguridad operacional[cite: 1].
+>
+> **Preservación del Núcleo:** Identificación precisa del mantenimiento de `SkyCampus App` como orquestador central y la continuidad de las funciones clave de solicitud, asignación y parametrización[cite: 1].
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
 
 
