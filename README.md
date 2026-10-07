@@ -1472,3 +1472,44 @@ El panel superior incluye métricas de resumen por categorías para evitar sobre
 > **Extensiones y Condiciones (`<<extend>>`):** 2 relaciones `<<extend>>` configuradas adecuadamente apunten al Caso de Uso base y acompañadas de sus notas de condición de extensión explícitas (Batería < 30% y Batería 30-40%)[cite: 14].
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 11 · Mocks
+
+![](docs/images/flujo-completo-asignacion.png)
+
+### Documentación de los principios de Nielsen
+
+1. ***Visibilidad del estado del sistema:*** El sistema mantiene informado al operador sobre el estado actual de la flota usando indicadores, colores y etiquetas que permiten identificar rápidamente si un drone está disponible, en vuelo, en carga o presenta un fallo.
+   
+2. ***Correspondencia entre el sistema y el mundo real:*** La interfaz utiliza conceptos familiares para el operador, como drones, batería, ubicación. La información se presenta utilizando un lenguaje sencillo y relacionado directamente con la operación de reparto.
+   
+3. ***Control y libertad del usuario:*** El operador tiene control del proceso. Puede seleccionar o cambiar el drone propuesto, cancelar una asignación antes de confirmarla y regresar a pasos anteriores del formulario. También están disponibles las opciones de Confirmar o Cancelar.
+   
+4. ***Consistencia y estándares:*** Las tres pantallas mantienen la misma estructura visual, navegación, tipografía, colores, botones e iconografía.
+
+5. ***Prevención de errores:*** El sistema no permite seleccionar drones que no cumplan las condiciones de la misión y muestra advertencias cuando el paquete supera el peso máximo disponible y también bloquea el flujo cuando las condiciones climáticas no permiten realizar la misión.
+   
+6. ***Diseño estético y minimalista:*** La interfaz presenta únicamente la información necesaria para la operación, evitando elementos decorativos que puedan distraer al operador.
+   
+7. ***Ayudar a reconocer, diagnosticar y recuperarse de errores:*** Cuando las condiciones climáticas son adversas se informa que la misión está bloqueada y se explica la causa; cuando no hay drones disponibles se ofrece la opción de programar la misión para más tarde.
+   
+8.  ***Ayuda y documentación:*** Los mensajes de error y las restricciones incluyen información suficiente para que el operador comprenda qué está ocurriendo y pueda tomar una decisión adecuada sin necesidad de abandonar el flujo.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Flujo Completo UI/UX (3 Pantallas + 3 Estados de Error + Nielsen)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Evidencias Verificadas:**  
+>  
+> **Pantallas del Flujo:** Secuencia lógica y completa de 3 pantallas (Panel de flota, Formulario con cálculo de aptitud en tiempo real y Confirmación con ruta/ETA)[cite: 15].  
+>  
+> **Estados de Error Requeridos:** Los 3 escenarios de error están diseñados explícitamente con mensajes de orientación y acciones de recuperación (Sin drones + reprogramación, Clima adverso con métricas de bloqueo y Peso excedido con límite máximo)[cite: 15].  
+>  
+> **Heurísticas de Nielsen:** Documentación y aplicación clara de 7 principios de diseño visual y de interacción en la parte inferior del prototipo (visibilidad, prevención de errores, consistencia, recuperación ante errores, etc.)[cite: 15].  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
