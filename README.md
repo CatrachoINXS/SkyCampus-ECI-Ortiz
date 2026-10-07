@@ -1302,3 +1302,84 @@ La manera para resolver la tensión es especificar en RF-07 que es para cualquie
 > **Detección y Resolución de Tensión (RF-07 vs. RF-08):** Se identificó correctamente la ambigüedad generada por la regla absoluta *"para cualquier misión"* en `SC-07`. La solución propuesta es acertada y directa: acotar explícitamente `SC-07` a misiones estándar (no urgentes) para que el desarrollador aplique una jerarquía de estrategias clara sin caer en inconsistencias.
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 07 · PLANTILLA DOSW
+#### FUNCIONALIDAD
+|Código|SC-07|
+|---|---|
+|Nombre|Asignar automáticamente drone a misión|
+|Actor|Operador de drones|
+|Precondiciones|La solicitud de misión debe estar registrada en el sistema. Debe existir conexión con la API Meteorológica.|
+
+#### DATOS DE ENTRADA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|origen|Ubicación inicial del envío|`Enum(BLOQUE_A, BLOQUE_B, BLOQUE_C, BLOQUE_D, BIBLIOTECA)`|Debe ser un destino válido del campus.|Si|
+|destino|Ubicación final de la entrega|`Enum(BLOQUE_A, BLOQUE_B, BLOQUE_C, BLOQUE_D, BIBLIOTECA)`|Debe ser un destino válido del campus y diferente al origen|Si|
+|paquete|Estructura anidada con los datos de la carga|—|—|Si|
+|paquete.peso|Peso del paquete a transportar|`Integer`|En gramos. Valor entre 1 y 2000 g.|Si|
+|paquete.tipo|Categoría del elemento enviado|`Enum(SOBRE,CARPETA,LIBRO)`|Debe ser uno de los tipos soportados|No|
+|paquete.prioridad|Grado de urgencia del paquete|`Enum(URGENTE, NORMAL, BAJO)`|—|Si|
+
+
+#### DATOS DE SALIDA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|codigoMision|Identificador único de la misión creada|`String`|Debe ser generado automáticamente|Si|
+|estadoMision|Estado inicial de la misión asignada|Enum(ASIGNADA, CANCELADA)|—|Si|
+|droneAsignado|dron seleccionado|—|Calculado por el sistema según la estrategia activa|No|
+|droneAsignado.id|id del dron asignado|`String`|—|No|
+|droneAsignado.bateria|batería actual del dron asignado|`Integer`|Debe estár entre 0 y 100|No|
+|droneAsignado.tipo|Tipo o modelo del dron asignado|`Enum(LIGERO, CARGO, EXPRESS)`|Debe ser un tipo válido|No|
+
+#### FLUJO BÁSICO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|1|Sistema|Recibe la solicitud de la misión con los datos del paquete, origen y destino|—|
+|2|Sistema|Consulta las condiciones del clima actuales a la API meteorologica|FA-1|
+|3|Sistema|Filtra los drones disponibles que tienen batería mayor al 30%|FA-2|
+|4|Sistema|Aplica la estrategia de selección de dron activa|FA-3|
+|5|Sistema|valida que el dron seleccionado cumpla todas las reglas de negocio (capacidad de carga, restricciones de modelo)|FA-2, FA-3|
+|6|Sistema|Realiza la asignación del dron a la misión y actualiza el estado de la misión a ASIGNADA|—|
+|7|Sistema| notifica a todos los observadores registrados |—|
+
+#### FLUJO ALTERNO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|FA-1|Sistema|Cuando no hay drones disponibles o que tengan batería mayor al 30% se lanza una excepción con un mensaje de error indicando el problema y regresa al paso 1 |—|
+|FA-2|Sistema|Cuando las condiciones climáticas detectadas por la API meteorológica son adversas, el sistema suspende el lanzamiento|—|
+|FA-3|Sistema|Cuando un paquete supera la capacidad máxima o no cumple con las restricciones de tipo se lanza una excepción de capacidad excedida|—|
+
+#### REGLAS DE NEGOCIO
+
+|No.|Descripcion|
+|---|---|
+|1|Un drone debe contar obligatoriamente con un nivel de batería >= 30% para poder ser asignado auna misión.|
+|2|Un dron que sea tipo CARGO no puede transportar paquetes con un peso inferior a 100 gramos|
+|3|Las misiones marcadas con prioridad URGENTE deben ser atendidas utilizando la estrategia de asignación por velocidad|
+|4|Si las condiciones meteorológicas reportan lluvia o vientos muy fuertes, ningún lanzamiento puede ser autorizado.|
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Plantilla DOSW para la funcionalidad SC-07  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Desglose de Sub-Objetos:** Estructuración impecable de los atributos anidados (`paquete.peso`, `paquete.tipo`, `paquete.prioridad`, `droneAsignado.id`, `droneAsignado.bateria`, `droneAsignado.tipo`), definiendo con claridad los tipos de datos, obligatoriedad y el origen de salida (calculados por el sistema).
+>
+> **Secuencia del Flujo Básico:** El flujo cubre de forma ordenada la recepción de solicitud, consulta a la API meteorológica, filtrado de flota apta, aplicación del patrón Strategy, validación de reglas de negocio, asignación y disparo de notificaciones mediante el patrón Observer.
+>
+> **Mapeo de Flujos Alternos y Excepciones:** Definición correcta de las tres rutas de excepción requeridas (`FA-1` para indisponibilidad/batería, `FA-2` para condiciones climáticas adversas y `FA-3` para capacidad/restricción de tipo excedida), enlazados adecuadamente en la columna de excepciones del flujo básico.
+>
+> **Reglas de Negocio Claras:** Declaración explícita del umbral de batería (≥ 30%), restricción operativa del dron `CARGO` (< 100g), precedencia de la estrategia por velocidad para misiones `URGENTE` y restricción meteorológica.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
