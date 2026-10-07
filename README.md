@@ -1260,6 +1260,45 @@ public class GestorMisionesStrategyTest {
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 
+## 06 · RF y RNF
 
+|Código|Requerimiento|MoSCoW|Justificacion|
+|---|---|---|---|
+|SC-04|El sistema debe enviar una notificación cuando un drone entra en estado FALLO.|Should Have|Es importante para la seguridad en la operación, sin embargo no es elemental para el funcionamiento de la plataforma.|
+|SC-05|El sistema debe evaluar que las condiciones meteorológicas sean buenas antes de lanzar un drone.|Must Have|Es indispensable para evitar la pérdida de los equipos por factores climaticos|
+|SC-06|Permitir al técnico de mantenimiento gestionar los drones que se encuentran en estado FALLO. |Must Have|Requisito operativo necesario para reincorporar flota a la operación.|
+|SC-07|El sistema asigna automáticamente el drone de mayor batería disponible para cualquier misión. |Must Have|Sin asignación automática no hay operación autónoma.|
 
+#### REQUERIMIENTOS NO FUNCIONALES
 
+|Código|Requerimiento|
+|---|---|
+|SC-RNF-04|El algoritmo de asignación automática debe seleccionar el drone óptimo en menos de 500 ms para una flota de hasta 50 drones.|
+|SC-RNF-05|El sistema debe notificar al técnico de mantenimiento en menos de 200 ms desde que ocurre la transición al estado FALLO.|
+|SC-RNF-06|La consulta a la API Meteorológica debe tener un timeout máximo de 2 segundos.|
+|SC-RNF-07|La interfaz de gestión del Técnico de Mantenimiento debe cumplir con el estándar WCAG 2.1 Nivel AA.|
+
+#### DETECCIÓN DE TENSIÓN
+
+En RF-07 se menciona que el sistema asigna a CUALQUIER mision el drone de mayor batería disponible, pero en el RF-08 hay una excepción, cuando la misión es URGENTE se asigna el drone más rápido disponible. Entonces para el RF-07 no aplica el cualquier mision.
+
+La manera para resolver la tensión es especificar en RF-07 que es para cualquier mision que no sea urgente, de esta manera el desarrollador no se confunde y sabe que son dos casos distintos.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Requerimientos Funcionales, No Funcionales, MoSCoW y Tensión de Negocio  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Requerimientos Funcionales (RF) y MoSCoW:** Los 4 requerimientos funcionales (`SC-04` a `SC-07`) cubren con precisión las nuevas capacidades de la versión 2 (alertas de fallo, consulta meteorológica, gestión técnica de flota y asignación automática). La priorización MoSCoW está adecuadamente sustentada con justificaciones operativas claras.
+>
+> **Requerimientos No Funcionales (RNF) Medibles:** Los 4 RNF (`SC-RNF-04` a `SC-RNF-07`) incluyen métricas cuantitativas, concretas y auditables (tiempos límite en ms/segundos para algoritmos, latencias y timeouts, además de un estándar formal de accesibilidad WCAG 2.1 Nivel AA).
+>
+> **Detección y Resolución de Tensión (RF-07 vs. RF-08):** Se identificó correctamente la ambigüedad generada por la regla absoluta *"para cualquier misión"* en `SC-07`. La solución propuesta es acertada y directa: acotar explícitamente `SC-07` a misiones estándar (no urgentes) para que el desarrollador aplique una jerarquía de estrategias clara sin caer en inconsistencias.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
