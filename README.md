@@ -1383,3 +1383,42 @@ La manera para resolver la tensión es especificar en RF-07 que es para cualquie
 > **Reglas de Negocio Claras:** Declaración explícita del umbral de batería (≥ 30%), restricción operativa del dron `CARGO` (< 100g), precedencia de la estrategia por velocidad para misiones `URGENTE` y restricción meteorológica.
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 08 · Identidad y UX
+
+### TARJETA DE DRONE
+![](docs/images/tarjeta-drone.png)
+
+### FLUJO DE ASIGNACIÓN
+#### Panel de Operador
+![](docs/images/panel-flota.png)
+
+#### Flujo
+![](docs/images/flujo-asignacion.png)
+
+### Documentación
+
+#### Ley de Fitts
+Para la aplicación en las tarjetas de drone, el boton de **ASIGNAR MISIÓN** resalta con un color amarillo de alto contraste y un tamaño prominente. Esto reduce el tiempo de desplazamiento del cursor y minimiza errores al hacer clic.
+
+#### Ley de Hick
+El panel superior incluye métricas de resumen por categorías para evitar sobrecargar al operador con un listado extenso de drones sin clasificar.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Sistema de Diseño, Wireframes (Tarjeta de Drone y Flujo de Asignación) y Leyes UX  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Diseño de Componentes y Estados Operativos:** La representación visual del componente `DroneCard` cubre los 5 estados solicitados (`Disponible`, `En vuelo`, `En carga`, `Fallo` y `Mantenimiento`)[cite: 7]. Se adaptan con precisión los elementos visuales según el estado, como la línea de tiempo de progreso en vuelo[cite: 7], la cuenta regresiva e ícono de rayo en carga[cite: 7], y los banners contextuales de alerta o información para fallo y mantenimiento[cite: 7].
+>
+> **Secuencia del Flujo de Asignación Automática:** La interacción de 3 pantallas está estructurada con claridad: desde el panel de flota con mapa interactivo y tabla[cite: 6], pasando por la modal con validación previa de batería (≥ 30%) y selección de parámetros[cite: 5], hasta la pantalla de éxito con el código de misión generado automáticamente (`M-2026-001`)[cite: 5].
+>
+> **Justificación de Leyes UX:** Excelente aplicación de la **Ley de Fitts** al destacar los botones de acción principales (`ASIGNAR MISIÓN` / `Asignar misión`) con contraste y áreas de clic amplias[cite: 5, 7], y de la **Ley of Hick** al simplificar la carga cognitiva del operador mediante el resumen de métricas de flota por estado y el uso de controles segmentados[cite: 5, 6].
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
