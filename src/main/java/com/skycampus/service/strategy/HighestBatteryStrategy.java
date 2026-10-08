@@ -14,6 +14,7 @@ public class HighestBatteryStrategy implements DroneSelectionStrategy {
         return drones.stream()
             .filter(Drone::disponible)
             .filter(d -> d.capacidadGramos() >= mision.pesoPaqueteGramos())
+            .filter(d -> d.bateria() >= 30)
             .max(Comparator.comparing(Drone::bateria));
     }
     

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -21,15 +22,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AsignadorMisionTest {
     @Mock
     private ApiMeteorologica clima;
+    @Spy
+    private GestorFlota gestorFlota = new GestorFlota();
     @Mock
     private ObservadorDrone notificador;
+    @Spy
+    private GestorMisiones gestorMisiones = new GestorMisiones();
+
     @InjectMocks
-    GestorMisiones asignador;
+    private AsignadorMision asignador;
 
     private List<Drone> flota;
 
     @BeforeEach
     void setUp() {
+        gestorFlota.suscribir(notificador);
         flota = List.of(
                 new Drone("D-01", "Modelo 1", 85, true,  "Bloque A", TipoDrone.CARGO),
                 new Drone("D-02", "Modelo 2", 42, false, "Biblioteca", TipoDrone.MINI),
@@ -49,7 +56,7 @@ public class AsignadorMisionTest {
                 .destino("Bloque B")
                 .tipoCarga(TipoCarga.SOBRE)
                 .prioridad(Prioridad.NORMAL)
-                .peso(300)
+                .peso(200)
                 .drone(flota.get(0))
                 .build();
         Optional<Drone> asignado = asignador.asignarDrone(flota, mision);

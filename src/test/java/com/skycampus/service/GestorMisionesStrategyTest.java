@@ -45,7 +45,8 @@ public class GestorMisionesStrategyTest {
     @DisplayName("GestorMisiones funciona con cualquier EstrategiaAsignacion sin modificar su código")
     public void gestorMisionesFuncionaConCualquierEstrategiaAsignacion() {
         DroneSelectionStrategy estrategia = new HighestBatteryStrategy();
-        GestorMisiones gestor = new GestorMisiones(estrategia);
+        GestorMisiones gestor = new GestorMisiones();
+        gestor.setStrategy(estrategia);
 
         Optional<Drone> dron1 = gestor.asignarDrone(flota, mision);
         assertEquals("D-03", dron1.get().id());

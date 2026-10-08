@@ -11,7 +11,7 @@ public class GestorFlota {
     
     private final List<ObservadorDrone> obs = new ArrayList<>();
     void suscribir(ObservadorDrone o) { obs.add(o); }
-    Drone cambiarEstado(Drone d, EstadoDrone nuevo) {
+    public Drone cambiarEstado(Drone d, EstadoDrone nuevo) {
         Drone dronActualizado = new Drone(
             d.id(),
             d.modelo(),
