@@ -1513,3 +1513,6 @@ El panel superior incluye métricas de resumen por categorías para evitar sobre
 > **Heurísticas de Nielsen:** Documentación y aplicación clara de 7 principios de diseño visual y de interacción en la parte inferior del prototipo (visibilidad, prevención de errores, consistencia, recuperación ante errores, etc.)[cite: 15].  
 >  
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 12 · TDD
+
