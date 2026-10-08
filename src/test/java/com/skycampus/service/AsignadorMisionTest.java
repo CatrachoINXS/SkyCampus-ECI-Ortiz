@@ -128,6 +128,5 @@ public class AsignadorMisionTest {
         assertEquals(TipoDrone.EXPRESS, resultado.get().tipo());
         Mockito.verify(notificador).onEstadoCambiado(resultado.get(), EstadoDrone.EN_VUELO);
     }
-
-
+    
 }

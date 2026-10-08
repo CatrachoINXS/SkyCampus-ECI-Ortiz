@@ -14,6 +14,7 @@ public class ValidadorCarga extends BaseValidator {
 
             throw new IllegalArgumentException("La carga supera el peso máximo");
         }
+        nextValidator(mision);
     }
     
 }

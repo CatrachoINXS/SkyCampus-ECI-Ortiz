@@ -3,6 +3,7 @@ package com.skycampus;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -12,6 +13,8 @@ import com.skycampus.model.*;
 public class ConsultasMonferno {
 
     private static final Logger logger = Logger.getLogger(ConsultasMonferno.class.getName());
+
+    private ConsultasMonferno() {}
     
     public static void ejecutarConsultas(List<Mision> misiones) {
 
@@ -19,13 +22,12 @@ public class ConsultasMonferno {
             .filter(m -> m.estado() == EstadoMision.ENTREGADA)
             .collect(Collectors.groupingBy(m -> m.drone().tipo(), Collectors.counting()));
 
-        Drone segundaConsulta = misiones.stream()
+        Optional<Drone> segundaConsulta = misiones.stream()
             .filter(m -> m.estado() == EstadoMision.ENTREGADA)
-            .collect(Collectors.groupingBy(m -> m.drone(), Collectors.counting()))
+            .collect(Collectors.groupingBy(Mision::drone, Collectors.counting()))
             .entrySet().stream()
-            .max(Comparator.comparingLong(v -> v.getValue()))
-            .map(d -> d.getKey())
-            .get();
+            .max(Comparator.comparingLong(Map.Entry::getValue))
+            .map(Map.Entry::getKey);
 
         double terceraConsulta = ((double) misiones.stream()
             .filter(m -> m.estado() == EstadoMision.FALLIDA)

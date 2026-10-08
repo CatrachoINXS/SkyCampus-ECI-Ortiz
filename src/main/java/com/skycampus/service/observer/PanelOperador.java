@@ -1,5 +1,6 @@
 package com.skycampus.service.observer;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.skycampus.model.Drone;
@@ -10,6 +11,8 @@ public class PanelOperador implements ObservadorDrone {
 
     @Override
     public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
-        logger.info(String.format("[PANEL] Drone %s cambio de estado a: %s", drone.id(), nuevoEstado));
+        if (logger.isLoggable(Level.INFO)) {
+            logger.info(String.format("[PANEL] Drone %s cambio de estado a: %s", drone.id(), nuevoEstado));
+        }
     }
 }

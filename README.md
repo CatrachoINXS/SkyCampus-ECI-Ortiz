@@ -1516,3 +1516,149 @@ El panel superior incluye métricas de resumen por categorías para evitar sobre
 
 ## 12 · TDD
 
+### TDD para el ValidadorMision de SkyCampus
+
+### TEST CON MOCKITO
+
+```java
+@ExtendWith(MockitoExtension.class)
+public class AsignadorMisionTest {
+    @Mock
+    private ApiMeteorologica clima;
+    @Spy
+    private GestorFlota gestorFlota = new GestorFlota();
+    @Mock
+    private ObservadorDrone notificador;
+    @Spy
+    private GestorMisiones gestorMisiones = new GestorMisiones();
+
+    @InjectMocks
+    private AsignadorMision asignador;
+
+    private List<Drone> flota;
+
+    @BeforeEach
+    void setUp() {
+        gestorFlota.suscribir(notificador);
+        flota = List.of(
+                new Drone("D-01", "Modelo 1", 85, true,  "Bloque A", TipoDrone.CARGO),
+                new Drone("D-02", "Modelo 2", 42, false, "Biblioteca", TipoDrone.MINI),
+                new Drone("D-03", "Modelo 3", 91, true,  "Bloque C", TipoDrone.EXPRESS),
+                new Drone("D-04", "Modelo 4", 18, true,  "Bloque B", TipoDrone.EXPRESS),
+                new Drone("D-05", "Modelo 5", 67, true,  "Bloque D", TipoDrone.CARGO)
+        );
+    }
+
+    @Test
+    @DisplayName("Drone de mayor batería se asigna a misión NORMAL")
+    void misionNormal_asignaDroneMayorBateria() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        Mision mision = new MisionBuilder()
+                .id("M-01")
+                .origen("Bloque A")
+                .destino("Bloque B")
+                .tipoCarga(TipoCarga.SOBRE)
+                .prioridad(Prioridad.NORMAL)
+                .peso(200)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> asignado = asignador.asignarDrone(flota, mision);
+        assertTrue(asignado.isPresent());
+        assertEquals(91, asignado.get().bateria());
+        Mockito.verify(notificador).onEstadoCambiado(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void climaAdverso_retornaVacio() {
+        Mockito.when(clima.esApto()).thenReturn(false);
+        Mision mision = new MisionBuilder()
+                .id("M-01")
+                .origen("Bloque A")
+                .destino("Bloque B")
+                .peso(300)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flota, mision);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void sinDronesAptos_retornaVacio() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        List<Drone> flotaIncapaz = List.of(
+                new Drone("D-01", "Modelo 1", 10, true,  "Bloque A", TipoDrone.CARGO)
+        );
+        Mision mision = new MisionBuilder()
+                .id("M-01")
+                .origen("Bloque A")
+                .destino("Bloque C")
+                .peso(300)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flotaIncapaz, mision);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void paqueteMuyPesado_retornaVacio() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        Mision misionExcedida = new MisionBuilder()
+                .id("M-04")
+                .origen("Bloque A")
+                .destino("Bloque C")
+                .peso(3000)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flota, misionExcedida);
+        assertTrue(resultado.isEmpty());
+        Mockito.verifyNoInteractions(notificador);
+    }
+
+    @Test
+    void misionUrgente_asignaDroneExpressMayorBateria() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        Mision misionUrgente = new MisionBuilder()
+                .id("M-05")
+                .origen("Bloque A")
+                .destino("Bloque B")
+                .prioridad(Prioridad.URGENTE)
+                .peso(300)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flota, misionUrgente);
+        assertTrue(resultado.isPresent());
+        assertEquals("D-03", resultado.get().id());
+        assertEquals(TipoDrone.EXPRESS, resultado.get().tipo());
+        Mockito.verify(notificador).onEstadoCambiado(resultado.get(), EstadoDrone.EN_VUELO);
+    }
+
+}
+```
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Desarrollo Guiado por Pruebas (TDD) — `AsignadorMision`
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Evidencias Verificadas:**  
+>  
+> **Ejecución de Pruebas Unitarias:** 5 de 5 pruebas ejecutadas en verde dentro del entorno de desarrollo sin fallos ni errores (5 tests passed).  
+>  
+> **Integración del Patrón Builder:** Construcción de objetos Mision empleando MisionBuilder() dentro de las fases de setup/arrange de cada test.  
+>  
+> **Mapeo del Ciclo Red-Green-Refactor:** Cumplimiento total de la lógica del negocio simulada mediante Mockito para el API meteorológico y observadores del sistema.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 13 · JaCoCo — Cobertura de código
+
+### COVERAGE JACOCO
+![](docs/images/skycampus-jacoco.png)
+![](docs/images/skycampus-jacoco-2.png)
+
+### ANALISIS ESTATICO SONARQUBE
+![](docs/images/sonarqube-issues-3.png)
+![](docs/images/sonarqube-issues-4.png)
+

@@ -1,5 +1,6 @@
 package com.skycampus.service.observer;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.skycampus.model.Drone;
@@ -10,7 +11,7 @@ public class AlertaTecnico implements ObservadorDrone {
 
     @Override
     public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
-        if (nuevoEstado == EstadoDrone.FALLO) {
+        if (nuevoEstado == EstadoDrone.FALLO && logger.isLoggable(Level.INFO)) {
             logger.warning(String.format("[ALERTA TÉCNICA] El dron %s entró en estado FALLO.", drone.id()));
         }
     }
