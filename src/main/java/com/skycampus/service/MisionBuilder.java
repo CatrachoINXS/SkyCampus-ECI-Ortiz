@@ -33,7 +33,7 @@ public class MisionBuilder {
         if (origen == null || destino == null || drone == null) {
             throw new IllegalStateException("Drone, origen y destino son obligatorios");
         }
-        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima, pesoPaqueteGramos);
+        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima, pesoPaqueteGramos, null);
     }
 
 }

@@ -1662,3 +1662,39 @@ public class AsignadorMisionTest {
 ![](docs/images/sonarqube-issues-3.png)
 ![](docs/images/sonarqube-issues-4.png)
 
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Quality Gate, Cobertura JaCoCo y SonarQube 
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━** >  
+> **ESTADO: APROBADO ✅** >  
+> **Evidencias Verificadas:** >  
+> **Métricas de Cobertura (JaCoCo):** Se evidencia el incremento de cobertura de código alcanzando un 81% en líneas y un 70% en ramas, superando la meta de la DoD (≥ 80%).
+>
+> **Análisis Estático (SonarQube):** Captura de resolución completa de issues pasando de 4 code smells a 0 issues activos (0 bugs, 0 vulnerabilidades, 0 esfuerzo de deuda técnica).
+>
+> **Cumplimiento de Quality Gate:** Las métricas de calidad de código y cobertura del proyecto SkyCampus v2 quedan formalmente consolidadas y aprobadas.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 14 · SonarQube — Análisis estático de calidad
+![](docs/images/sonarqube-overview-2.png)
+
+
+
+
+# **Infernape - SkyCampus Enterprise**
+
+- **Nombre:** Cristian Camilo Ortiz Sánchez
+- **Carnet:** 1000105286
+- **Correo:** `cristian.ortiz-s@mail.escuelaing.edu.co`
+---
+
+El éxito en la ECI llevó a que UNAL, Uniandes y EAFIT quisieran usar SkyCampus. Ahora es una red compartida: los drones pueden transferirse entre sedes, hay estaciones de carga intermedias, y una flota de 100 drones de 5 tipos gestiona entregas entre campus.
+
+Nuevas funcionalidades: Rutas multi-etapa (drone a estación de carga, carga, continuar ruta), optimización de flota compartida, analytics de eficiencia por sede, autorización de la Aerocivil para vuelos inter-sede, y un panel de superadmin para la red completa.
+
+Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sistema externo de regulación aérea), Estación de carga autónoma.
+
+    💡 En Infernape no se agregan features arbitrarias. Se profundiza en calidad: código con más patrones, requerimientos sin ambigüedades, cobertura de pruebas más alta, diseño más consistente.
+
