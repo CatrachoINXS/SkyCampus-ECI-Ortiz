@@ -1,1 +1,1700 @@
-# SkyCampus-ECI-Ortiz
+# **Chimchar - SkyCampus MVP**
+
+- **Nombre:** Cristian Camilo Ortiz Sánchez
+- **Carnet:** 1000105286
+- **Correo:** `cristian.ortiz-s@mail.escuelaing.edu.co`
+---
+
+**Contexto:** La ECI tiene 5 drones del mismo modelo (DJI Mini 3). Solo transportan documentos (sobres y carpetas). Los destinos posibles son fijos: Bloque A, Bloque B, Bloque C, Bloque D y la Biblioteca. Un operador selecciona manualmente qué drone asignar a cada misión.
+
+**Flujo básico:** El operador registra una solicitud de reparto (origen, destino, tipo de documento) → revisa qué drones están disponibles y con batería suficiente → asigna uno manualmente → el drone ejecuta la misión por ruta predefinida → el operador confirma la entrega.
+
+**Los objetos del sistema:**
+
+`Drone(id:String, modelo:String, bateria:int, disponible:boolean, ubicacion:String)`
+
+`Mision(id:String, drone:Drone, origen:String, destino:String tipoCarga:TipoCarga, estado:EstadoMision)`
+
+`TipoCarga: Enum(SOBRE, CARPETA, LIBRO)   EstadoMision: Enum(PENDIENTE EN_VUELO, ENTREGADA, FALLIDA)`
+
+---
+
+## 01 · STREAMS & LAMBDAS
+### Filtrar y ordenar la flota de drones disponibles
+
+#### 1. Lista de IDs de drones disponibles con batería ≥50%, ordenados de mayor a menor batería.
+
+```java
+List<String> primeraConsulta = flota.stream()
+    .filter(d -> d.bateria() >= 50 && d.disponible())
+    .sorted(Comparator.comparing(Drone::bateria).reversed())
+    .map(Drone::id)
+    .toList();
+```
+
+#### 2. ¿Hay algún drone disponible ubicado en "Bloque C"?
+```java
+boolean segundaConsulta = flota.stream()
+    .anyMatch(p -> p.ubicacion().equals("Bloque C") && p.disponible());   
+```
+#### 3. Cuántos drones tienen batería crítica (menos del 20%), independientemente de su disponibilidad.
+```java
+long terceraConsulta = flota.stream()
+    .filter(p -> p.bateria() < 20)
+    .count();
+```
+#### 4. Lista con el ID y la batería de cada drone (formato "D-01: 85%"), para todos los drones.
+
+```java
+List<String> cuartaConsulta = flota.stream()
+    .map(d -> d.id() + ": " + d.bateria() + "%")
+    .toList();
+```
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 1 — 4 consultas sobre la flota  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> Corregiste la comparación de cadenas usando `.equals()` en lugar de `==`, asegurando la evaluación por contenido.  
+>  
+> El pipeline de Streams en cada consulta es correcto, conciso y utiliza las operaciones intermedias y terminales adecuadas.  
+>  
+> Cumple estrictamente con el nivel Chimchar: sin bucles `for`/`while`, compila perfectamente y resuelve las 4 consultas solicitadas.  
+>  
+> Antes de avanzar, responde estas preguntas sin mirar el código:  
+>  
+> 1. En la consulta 2, ¿por qué es computacionalmente más eficiente usar `anyMatch()` que hacer un `filter()` seguido de un `findFirst().isPresent()` o `count() > 0`?  
+>  
+> 2. Si intentáramos guardar el `Stream<Drone>` en una variable local y ejecutar la consulta 1 y la consulta 2 sobre esa misma variable, ¿qué excepción lanzaría Java en tiempo de ejecución y por qué?  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
+
+## 02 · GITHUB Y GITFLOW
+### Crear el repositorio de SkyCampus con flujo correcto
+
+#### Link del REPO: https://github.com/CatrachoINXS/SkyCampus-ECI-Ortiz.git
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Configuración de Git, GitFlow y Modelo Inicial  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> La estructura de ramas respeta la convención de GitFlow (`main`, `develop` y la rama de característica `feature/Ortiz-modelo-drone`).  
+>  
+> La historia de commits es atómica, secuencial y sigue el estándar de Conventional Commits (`feat:`).  
+>  
+> El grafo de Git confirma que la integración (*merge*) hacia la rama `develop` se realizó correctamente partiendo del commit inicial de `main`.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 03 · PATRONES DE DISEÑO
+### Elegir el patrón correcto para cada problema de SkyCampus MVP
+
+**Problema 1:**  Una `Mision` tiene campos obligatorios (drone, origen, destino) y opcionales (prioridad, notas del operador, hora máxima de entrega). Crear un constructor para cada combinación es insostenible y confuso.
+
+#### **(a) PATRON BUILDER:** (b) Porque construye paso a paso solo los campos necesarios para una misión.
+
+#### (c) Implementación de la estructura mínima en Java
+
+```java
+public class MisionBuilder {
+
+    private Drone drone;
+    private String origen, destino, id;
+    private TipoCarga tipoCarga;
+
+    private EstadoMision estadoMision = EstadoMision.PENDIENTE;
+    private LocalTime horaMaxima;
+    private String notas = "";
+    private int prioridad = 3;
+
+    public MisionBuilder id(String id) { this.id = id; return this; }
+    public MisionBuilder drone(Drone drone) { this.drone = drone; return this; }
+    public MisionBuilder origen(String origen) { this.origen = origen; return this; }
+    public MisionBuilder destino(String destino) { this.destino = destino; return this; }
+    public MisionBuilder tipoCarga(TipoCarga carga) { this.tipoCarga = carga; return this; }
+
+    public MisionBuilder horaMaxima(LocalTime hora) { this.horaMaxima = hora; return this; }
+    public MisionBuilder notas(String nota)   { this.notas = nota;  return this; }
+
+    public Mision build() {
+        if (origen == null || destino == null || drone == null) {
+            throw new IllegalStateException("Drone, origen y destino son obligatorios");
+        }
+        return new Mision(id, drone, origen, destino, tipoCarga, estadoMision, prioridad, notas, horaMaxima);
+    }
+
+}
+
+// ———————— Uso ———————————————————————————————————————————————————————
+
+    Mision m = new MisionBuilder()
+        .drone(d03).origen("Bloque C").destino("Biblioteca")
+        .tipoCarga(TipoCarga.SOBRE)
+        .horaMaxima(LocalTime.of(6, 20))
+        .notas("Urgente Examen mañana")
+        .build();
+     
+```
+
+**Problema 2:** Antes de lanzar el drone, el sistema debe validar en orden: (a) ¿el drone tiene batería suficiente? (b) ¿el destino es válido? (c) ¿la carga no supera el peso máximo? Cada validación decide si pasa o rechaza.
+
+#### **(a) PATRON CHAIN OF RESPONSIBILITY:** (b) Porque cada validador procesa la batería, el destino y la carga de manera secuencial.
+
+#### (c) Implementación de la estructura mínima en Java
+
+```java
+public interface Validator {
+    Validator setNext(Validator validator);
+    void validate(Mision mision);
+}
+
+
+public abstract class BaseValidator implements Validator {
+    
+    private Validator next;
+
+    @Override 
+    public Validator setNext(Validator validator) {
+        this.next = validator;
+        return validator;
+    }
+
+    protected void nextValidator(Mision mision) {
+        if (next != null) {
+            this.next.validate(mision);
+        }
+    }
+
+}
+
+
+public class ValidadorBateria extends BaseValidator {
+
+    @Override
+    public void validate(Mision mision) {
+        if (mision.drone().bateria() < 30) {
+            throw new IllegalArgumentException("El drone no tiene batería suficiente");
+        }
+        System.out.println("[ValidadorBateria] Batería suficiente");
+        nextValidator(mision);
+    }
+    
+}
+
+
+public class ValidadorDestino extends BaseValidator {
+
+    private List<String> destinosValidos = List.of(
+        "Bloque A", "Bloque B", "Bloque C", "Bloque D", "Biblioteca"
+    );
+
+    @Override
+    public void validate(Mision mision) {
+        if (!destinosValidos.contains(mision.destino())) {
+            throw new IllegalArgumentException("El destino no es válido");
+        }
+        System.out.println("[ValidadorDestino] Destino válido");
+        nextValidator(mision);
+    }
+    
+}
+
+
+public class ValidadorCarga extends BaseValidator {
+
+    @Override
+    public void validate(Mision mision) {
+
+        TipoCarga tipoCarga = mision.tipoCarga();
+        if (mision.drone().modelo().equals("DJI Mini 3") && (
+            !tipoCarga.equals(TipoCarga.SOBRE) && !tipoCarga.equals(TipoCarga.CARPETA))) {
+
+            throw new IllegalArgumentException("La carga supera el peso máximo");
+        }
+    }
+    
+}
+
+// ———————— Uso ———————————————————————————————————————————————————————
+
+    Validator chain = new ValidadorBateria();
+    chain.setNext(new ValidadorDestino())
+        .setNext(new ValidadorCarga());
+     
+    chain.validate(mision);
+```
+
+
+**Problema 3:** El sistema debe asignar el drone óptimo para cada misión. El MVP asigna el de mayor batería. En el futuro podría ser el más cercano, o el más rápido. El algoritmo debe ser intercambiable sin tocar el resto del código.
+
+#### **(a) PATRON STRATEGY:** (b) Porque el sistema debe intercambiar el algoritmo para escoger el dron óptimo sin estár acoplado a cada implementación.
+
+#### (c) Implementación de la estructura mínima en Java
+
+```java
+public class SkyCampus {
+    
+    private DroneSelectionStrategy strategy = new HighestBatteryStrategy();
+
+    List<Drone> flota = List.of(
+        new Drone("D-01", "DJI Mini 3", 85, true,  "Bloque A"),
+        new Drone("D-02", "DJI Mini 3", 42, false, "Biblioteca"),
+        new Drone("D-03", "DJI Mini 3", 91, true,  "Bloque C"),
+        new Drone("D-04", "DJI Mini 3", 18, true,  "Bloque B"),
+        new Drone("D-05", "DJI Mini 3", 67, true,  "Bloque D")
+    );
+
+    public Drone selectDrone() {
+        return this.strategy.selectDrone(flota);
+    }
+
+    public void setDroneSelectionStrategy(DroneSelectionStrategy strategy) {
+        this.strategy = strategy;
+    }
+}
+
+
+public interface DroneSelectionStrategy {
+    Drone selectDrone(List<Drone> drones);
+}
+
+
+public class HighestBatteryStrategy implements DroneSelectionStrategy {
+
+    @Override
+    public Drone selectDrone(List<Drone> drones) {
+        if(drones.isEmpty()) {
+            throw new IllegalArgumentException("No hay drones para seleccionar");
+        }
+        return drones.stream()
+            .max(Comparator.comparing(Drone::bateria))
+            .get();
+    }
+    
+}
+
+// ———————— Uso ———————————————————————————————————————————————————————
+
+    SkyCampus service = new SkyCampus();
+    service.setDroneSelectionStrategy(new HighestBatteryStrategy());
+    
+    Drone dron = service.selectDrone();
+
+```
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 3 — Patrones de Diseño (Builder, Chain of Responsibility, Strategy)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **MisionBuilder:** Corregiste los nombres de parámetros, utilizaste `LocalTime.of(...)` y arreglaste la firma del constructor enviando el atributo id obligatorio.  
+>  
+> **Chain of Responsibility:** Corregiste la condición lógica booleana en `ValidadorCarga` mediante la conjunción `&& (!SOBRE && !CARPETA)`, haciendo que la regla de peso/carga funcione correctamente.  
+>  
+> **Strategy:** Eliminaste el retorno de null manejando explícitamente el caso de lista vacía con una excepción descriptiva (`IllegalArgumentException`).  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 04 · PRINCIPIOS SOLID
+### El GestorDrone viola SOLID
+
+|PRINCIPIO|PORQUÉ VIOLA EL PRINCIPIO|
+|---|---|
+|**Single Responsibility**|La clase tiene muchas responsabilidades, asigna misiones, guarda en base de datos, genera reportes, etc.|
+|**Open/Closed**|El condicional del método calcular ruta debe modificarse a medida que se quieren implementar nuevas funcionalidades, por lo tanto es abierto para la modificacion y cerrado para la extension.|
+|**Dependency Inversion**|La clase está acomplada a implementaciones concretas como MySQL y no a abstracciones como Base de Datos|
+
+### Rediseño de la implementación usando los principios SOLID
+
+```java
+public class AsignadorMision {
+    
+    public void asignarMision(Drone dron, Mision mision) {
+        // lógica de asignación
+    }
+}
+
+
+public interface RepositorioMision {
+    void guardarEnBD(Mision mision);
+}
+
+
+public interface AlertaOperador {
+    void enviarAlerta(String msg);
+}
+
+
+public class GeneradorReporte {
+    
+     public void generarReportePDF(List<Mision> misiones) {
+        // genera PDF con iText aquí
+    }
+}
+
+public interface EstrategiaRuta {
+    void calcularRuta(String origen, String destino);
+}
+
+
+public class EstrategiaRutaDirecta implements EstrategiaRuta {
+
+    @Override
+    public void calcularRuta(String origen, String destino) {
+        // Calcula la ruta directa
+    }
+    
+}
+
+
+public class EstrategiaRutaEvitar implements EstrategiaRuta {
+
+    @Override
+    public void calcularRuta(String origen, String destino) {
+        // Evita los edificios altos
+    }
+    
+}
+```
+### Respuesta del agente: 
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 4 — Principios SOLID y Refactorización  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Identificación de violaciones SOLID:** Identificaste de manera precisa las tres violaciones principales (SRP, OCP y DIP) explicando adecuadamente la causa en el código original.  
+>  
+> **Refactorización modular (SRP):** Desacoplaste correctamente la clase monolítica GestorDrone en clases e interfaces cohesivas, asegurando que cada una tenga una sola responsabilidad y razón para cambiar.  
+>  
+> **Inversión de Dependencias (DIP) y OCP:** Al convertir la persistencia y la alerta a interfaces (RepositorioMision y AlertaOperador), desacoplaste las implementaciones concretas. Además, el uso de la interfaz EstrategiaRuta reemplazó el bloque if/else por polimorfismo, permitiendo extender nuevos tipos de ruta sin modificar el código existente.  
+>  
+> **Cumplimiento de estándares de código:** Los nombres siguen las convenciones en Java (PascalCase, camelCase) y la longitud de los métodos y clases está dentro de los límites del nivel Chimchar.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 05 · DIAGRAMA DE CONTEXTO C4
+### Cómo encaja SkyCampus MVP en el mundo de la ECI
+
+![](docs/images/DiagramaContextoSkyCampus.drawio.png)
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 5 — Diagrama de Contexto C4  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Conectores C4:** Corregiste las líneas discontinuas por líneas continuas sólidas con flechas dirigidas al sistema, cumpliendo con la notación estándar C4.  
+>  
+> **Flujo de datos de entrada:** Especificaste adecuadamente qué información envían los actores al sistema (con datos de envío en Solicitante, y con datos de drones y destinos válidos en Admin).  
+>  
+> **Simplicidad del MVP:** Mantuviste la arquitectura simple y fiel a los requerimientos del nivel Chimchar sin agregar dependencias externas ni complejidad innecesaria.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+___
+
+## 06 · RF VS RNF Y PRIORIDAD MOSCOW
+### Escribir los RF y RNF del SkyCampus MVP correctamente
+
+#### REQUERIMIENTOS FUNCIONALES
+
+|Código|Requerimiento|
+|---|---|
+|SC-01|El sistema debe permitir al solicitante registrar una solicitud de reparto con los datos del envío generando una nueva misión en estado PENDIENTE|
+|SC-02|El sistema debe permitir al operador ver los drones disponibles con su batería actual en una lista filtrada de drones. |
+|SC-03|El sistema debe permitir al operador asignar manualmente un dron para realizar una solicitud de reparto mostrando el dron seleccionado. |
+
+**MoSCoW:** Los tres requerimientos funcionales entran en la categoría (Must Have). SC-01 es totalmente necesario para crear misiones que son el nucleo de SkyCampus. SC-02 también es indispensable porque es parte del flujo de selección de drones. SC-03 tambíen es obligatorio porque el operador debe poder seleccionar el dron del envío.
+
+#### REQUERIMIENTOS NO FUNCIONALES
+
+|Código|Requerimiento|
+|---|---|
+|SC-RNF-01|El tiempo de ejecución de las consultas de drones disponibles debe ser menor a 200ms.|
+|SC-RNF-02|Un operador debe ser capaz de completar la asignación de una mision en menos de tres pantallas |
+|SC-RNF-03|El sistema debe ofrecer la opción de modo Daltonismo para personas con protanopía, deuteranopía y tritanopía.|
+
+**MoSCoW:** El requerimiento SC-RNF-01 está en la categoría (Should Have) pues es un requerimiento importante pero no imprescendible en una fase de lanzamiento. El requerimiento SC-RNF-02 está en la categoría (Must Have) porque es un requerimiento totalmente necesario de usabilidad. El requerimiento SC-RNF-03 está en la categoría (Could Have) porque es un requerimiento deseable, pero de menor impacto.
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 6 — RF vs RNF y Priorización MoSCoW  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Estructura Causa-Efecto (Acción-Resultado):** Corregiste la redacción de los 3 Requerimientos Funcionales (SC-01, SC-02, SC-03) incorporando explícitamente el resultado observable del sistema ("generando una nueva misión en estado PENDIENTE", "en una lista filtrada de drones", "mostrando el dron seleccionado"), haciendo que cada RF sea atómico, completo y testeable.  
+>  
+> **Métricas en RNF:** Los Requerimientos No Funcionales mantienen métricas cuantitativas, concretas y verificables (< 200ms, < 3 pantallas, tipos específicos de acromatopsia/daltonismo).  
+>  
+> **Priorización MoSCoW Justificada:** Argumentaste adecuadamente la asignación de categorías para cada requerimiento acorde al alcance y prioridades operativas del MVP.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 07 · PLANTILLA DOSW
+### Plantilla DOSW para el RF "Registrar mision de reparto"
+#### FUNCIONALIDAD
+|Código|SC-01|
+|---|---|
+|Nombre|Registrar misión de reparto de documento|
+|Actor|Operador de drones|
+|Precondiciones|Debe existir al menos un drone con batería ≥30% y en estado disponible|
+
+#### DATOS DE ENTRADA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|drone|Drone asignado manualmente por el operador|`Drone(id:String, modelo:String, bateria:int, disponible:boolean, ubicacion:String)`|El drone debe estár disponible y tener batería con el 30% o más|Si|
+|origen|Punto de partida de la misión de reparto|`String`|Debe ser una ubicación válida definida por el admin|Si|
+|destino|Punto de llegada de la misión de reparto|`String`|Debe ser una ubicación válida definida por el admin|Si|
+|tipoCarga|Carga que va a transportar el drone en la misión|`Enum(SOBRE,CARPETA,LIBRO)`|Debe ser uno de los tipos de carga definidos: SOBRE, CARPETA o LIBRO|Si|
+|horaMaxima|Hora máxima en la que se debe completar la misión|`LocalTime`|Debe ser posterior a la hora actual|No|
+|notas|Notas agregadas por el operador|`String`|—|No|
+
+
+#### DATOS DE SALIDA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|codigo|Código de la misión generado|`String`|—|Si|
+
+#### FLUJO BÁSICO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|1|Operador|Ingresa a la opción de registrar misión de reparto|—|
+|2|Operador|Ingresa los datos del origen, el destino y el tipo de carga|—|
+|3|Sistema|Muestra los drones disponibles que tienen batería mayor al 30%|Flujo alterno 1|
+|4|Operador|Selecciona el drone y confirma el registro de la misión|—|
+|5|Sistema|Valida los datos ingresados y devuelve el id de la misión|Flujo alterno 2|
+
+#### FLUJO ALTERNO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|FA-1|Sistema|Cuando no hay drones disponibles o que tengan batería mayor al 30% se lanza una excepción con un mensaje de error indicando el problema y regresa al paso 1 |—|
+|FA-2|Sistema|Cuando los datos ingresados no son validos se lanza una excepción con un mensaje indicando el campo erroneo|—|
+
+#### REGLAS DE NEGOCIO
+
+|No.|Descripcion|
+|---|---|
+|1|Los destinos posibles son fijos: Bloque A, Bloque B, Bloque C, Bloque D y la Biblioteca|
+|2|Un dron que tenga batería menor a 30% no puede recibir asignaciones de misiones.|
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 7 — Especificación de Requerimiento Funcional (Plantilla DOSW)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Datos de Entrada:** Corregiste la obligatoriedad de tipoCarga a Si, asegurando que la entidad Mision reciba el valor requerido para la posterior validación del tipo de carga.  
+>  
+> **Flujos Alternos:** Redactaste el comportamiento paso a paso del sistema ante las excepciones (FA-1 y FA-2), indicando claramente el mensaje de error emitido y el retorno al estado seguro del flujo básico.  
+>  
+> **Reglas de Negocio:** Reemplazaste la preferencia de uso por la restricción de dominio RN-02 (batería < 30% no puede recibir asignación), definiendo una regla invariante real para la lógica de SkyCampus.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+---
+
+## 08 · MANUAL DE IDENTIDAD Y UX/UI
+### Definir la identidad de SkyCampus antes de diseñar una sola pantalla
+
+#### MANUAL DE IDENTIDAD MINIMO
+
+|ELEMENTO| DESCRIPCION|
+|---|---|
+|Paleta de colores|El color primario de SkyCampus es el color azul marino (HEX: #003C88) el cual representa estabilidad, confianza y calma y es la base que le da seriedad a la marca. Los demas colores son: <br><br>El amarillo anaranjado (HEX: #FFA500) el cual representala acción, alerta e interactibilidad y se usa para destacar los elementos donde el usuario debería clickear.  <br><br> Blanco (HEX: #FFFFFF) para representar legibilidad y orden, usado principalmente para fondos o para contrastar con el azúl marino como texto. <br><br>Gris oscuro (HEX: #343A40) usado para que los textos sean legibles en fondo blanco.|
+|Tipografía|La fuente para la interfaz será Rubik, una fuente legible gracias a su diseño geométrico, sus trazos limpios sin adornos y sus esquinas ligeramente redondeadas que suavizan la lectura en pantallas. Se escogió porque diferentes investigaciones sobre la legibilidad de las fuentes demuestran que las letras con formas más anchas aumentan la velocidad de reconocimiento de caracteres hasta en un 13%. Un estudio de eyetracking publicado en ResearchGate demostró que las fuentes demasiado delgadas aumentan la carga cognitiva y ralentizan la lectura en pantallas. Rubik al ser diseñada con trazos sólidos mantiente una consistencia ideal que no exige mayor esfuerzo al ojo humano.|
+|Colores de estado|El verde (HEX: #32CD32) que representa disponibilidad, éxito y confirmación usado para comunicar que un dron está disponible o que un envío se realizó con éxito. <br><br> Rojo (HEX: #DC2626) para representar urgencia cuando hay algun error o situacion inesperada.<br><br> El azúl marino de nuestra paleta para cuando un dron se encuentra en vuelo |
+
+#### MOCK GENERADO POR IA
+
+![](docs/images/PanelMonitoreoMockIA.jfif)
+
+#### PRINCIPIOS DE NIELSEN CUMPLIDOS
+
+**#1. Visibilidad del estado del sistema:** Cada uno de los cinco drones muestra su estado actual en una etiqueta en un vistazo, sin necesidad de clicks.
+
+**#2. Coincidencia entre el sistema y el mundo real:** Se utiliza un lenguaje relacionado con el contexto real de la operación con palabras como 'En vuelo', 'Mision', 'Dron' y 'batería'.
+
+**#6. Reconocer en lugar de recordar:** El operador no tiene que memorizar qué significa un código o qué número corresponde a qué campus o dron.
+
+**#8. Estética y diseño minimalista:** En lugar de poner toda la infomacion, como las notas, horaMaxima, modelo del dron, etc. Las tarjetas individuales con información esencial reducen la carga cognitiva.
+
+**#9. Reconocimiento, diagnóstico y recuperación de errores:** En lugar de mostrar un código numérico ambiguo, la tarjeta del SC-03 presenta un mensaje de error explícito y constructivo en lenguaje claro.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 8 — Manual de Identidad y UX/UI  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Manual de Identidad:** Definiste claramente los códigos HEX (#003C88, #FFA500, #FFFFFF, #343A40, #32CD32, #DC2626), la tipografía (Rubik) con justificación técnica de legibilidad, y el mapeo de colores según el estado operativo de los drones.  
+>  
+> **Mockup de la Interfaz:** La imagen generada refleja fielmente el manual propuesto: muestra el panel de monitoreo con la flota completa de 5 drones (SC-01 a SC-05), respetando la jerarquía visual, la paleta cromática definida y las métricas en tiempo real (batería %, ubicación y estados).  
+>  
+> **Evaluación de Heurísticas de Nielsen:** Justificaste adecuadamente el cumplimiento de los 5 principios seleccionados (#1, #2, #6, #8 y #9), demostrando cómo el diseño apoya la toma de decisiones del operador (como el manejo claro de alertas y errores en el dron SC-03 con batería inferior al 30%).  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 09 · AGILISMO Y JIRA
+### Organizar el desarrollo del MVP en Jira correctamente
+
+#### CAPTURAS
+
+![](docs/images/captura-jira-1.png)
+
+![](docs/images/captura-jira-2.png)
+
+![](docs/images/captura-jira-3.png)
+
+![](docs/images/captura-jira-4.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 9 — Gestión de Backlog en Jira (Jerarquía y Historias de Usuario)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Estructura de Historias de Usuario:** Cada una de las tarjetas (SC-3, SC-4, SC-5) documenta correctamente la plantilla estándar Como [rol], quiero [qué], para [beneficio] dentro de su descripción.  
+>  
+> **Criterios de Aceptación:** La HU SC-4 incluye explícitamente los 2 Criterios de Aceptación en formato Dado/Cuando/Entonces, contemplando el caso de éxito (vinculación) y la regla de negocio bloqueante (batería < 30% o dron no disponible).  
+>  
+> **Jerarquía y Subtareas:** Se verifica la vinculación correcta a la Épica (SC-1) y la inclusión de las 3 subtareas técnicas (SC-6, SC-7, SC-8) en el tablero.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 10 · DIAGRAMA DE CASOS DE USO
+### Diagrama de CU para el RF "Registrar mision de reparto"
+
+![](docs/images/DiagramaCasosUso.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 10 — Diagrama de Casos de Uso UML  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Límite del Sistema (System Boundary):** Incorporaste el recuadro que delimita el sistema System / SkyCampus, manteniendo los casos de uso adentro y los actores afuera.  
+>  
+> **Tres Actores del MVP:** Representaste a los tres roles principales (Solicitante, Operador y Admin), asignando a cada uno un caso de uso correspondiente dentro del alcance de la aplicación.  
+>  
+> **Relaciones UML y Condición Explicitada:** Aplicaste correctamente la relación include» hacia Validar disponibilidad del drone y la relación «extend» desde Enviar alerta de batería baja hacia Registrar misión de reparto, adjuntando la nota con la condición explícita Condición: [Si batería del drone seleccionado es < 30%].  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 11 · MOCKS CON IA
+### Generar el mock del panel de operador con el proceso correcto
+
+![](docs/images/MockPanelOperador.png)
+
+#### PROMPT
+
+```
+Actúa como diseñador UX/UI senior de sistemas de control.
+SISTEMA: SkyCampus — Panel de control de flota de drones ECI
+PANTALLA: Panel de monitoreo de la flota (vista principal del operador)
+ESTILO: Paleta de colores: El color primario de SkyCampus es el color azul marino (HEX: #003C88). Los demas colores son: El amarillo anaranjado (HEX: #FFA500) para destacar los elementos donde el usuario debería clickear. Blanco (HEX: #FFFFFF) para fondos o para contrastar con el azúl marino como texto. Gris oscuro (HEX: #343A40) usado para que los textos sean legibles en fondo blanco.
+Tipografía: La fuente para la interfaz será Rubik, una fuente legible gracias a su diseño geométrico, sus trazos limpios sin adornos y sus esquinas ligeramente redondeadas que suavizan la lectura en pantallas.
+Los colores de estado son el verde (HEX: #32CD32) usado para comunicar que un dron está disponible o que un envío se realizó con éxito. Rojo (HEX: #DC2626) para cuando hay algun error o situacion inesperada. El azúl marino de nuestra paleta para cuando un dron se encuentra en vuelo. Fondo oscuro tipo dashboard técnico.
+ACTOR: Operador de drones — necesita tomar decisiones rápidas
+DATOS A MOSTRAR POR DRONE: ID (formato D-XX), batería en %, estado
+  (DISPONIBLE/EN_VUELO/EN_CARGA/FALLO), ubicación actual
+ACCIONES DEL OPERADOR: Seleccionar drone, Asignar a misión, Ver detalle
+ESTADOS DE LA PANTALLA:
+  1. Normal: flota con drones en distintos estados
+  2. Alerta: un drone en estado FALLO (destacado visualmente)
+  3. Vacío: todos los drones en misión simultáneamente
+Nielsen: visibilidad del estado (#1), minimalismo (#8), prevención errores (#5)
+
+Genera los tres estados de la pantalla teniendo también en cuenta las siguientes entradas: drone, origen, destino, tipoCarga(SOBRE,CARPETA,LIBRO), horaMaxima(opcional), notas(opcional). Por último, la salida debe ser el código de la mision generado.
+```
+
+#### HEURISTICAS QUE SE CUMPLEN
+
+- **Visibilidad del estado del sistema (#1):** El panel mantiene informado al operador en todo momento mediante las etiquetas disponible, En vuelo y Fallo.
+  
+- **Prevención de errores (#5):** Evita fallos operativos al inhabilitar el botón de asignación y marcar en rojo a los drones con batería < 30%. 
+  
+- **Diseño minimalista y estética (#8):** Reduce la carga cognitiva al estructurar la pantalla en tarjetas limpias sobre fondo blanco, priorizando solo los 6 datos clave del dron.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 11 — Mockups con IA y Heurísticas de Nielsen  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>   
+> Al adjuntar el prompt completo que especificó la arquitectura de la interfaz (paleta HEX #003C88, #FFA500, #32CD32, #DC2626, tipografía Rubik, atributos por dron D-XX, y el flujo de campos de entrada tipoCarga, horaMaxima, etc.) junto con el desglose de las heurísticas de Nielsen (#1, #5 y #8), cumples técnicamente con todos los entregables solicitados en el enunciado del reto.  
+>  
+> **Lo que está bien:**  
+>  
+> **Prompt Completo y Detallado:** El prompt define con precisión los actores, datos de entrada/salida (código de misión generado), las variables de dominio del MVP y las restricciones estéticas.  
+>  
+> **Mapeo de Heurísticas:** Justificaste de forma directa el cumplimiento de los principios de Nielsen (#1 Visibilidad del estado, #5 Prevención de errores con el bloqueo de batería < 30%, y #8 Diseño minimalista).  
+>  
+> **Consistencia UX/UI:** La propuesta abarca la estructura visual requerida para el panel del operador dentro de las restricciones de SkyCampus.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 12 · TDD
+### TDD para el ValidadorMision de SkyCampus
+
+### TEST
+
+```java
+public class ValidadorMisionTest {
+    private ValidadorMision v;
+
+    @BeforeEach
+    void setUp() { v = new ValidadorMision(); }
+
+    @Test
+    @DisplayName("Drone con batería ≥ 30% puede ser asignado")
+    void droneBateriaSuficiente_puedeAsignarse() {
+        // ARRANGE
+        Drone d = new Drone("D-01", "DJI Mini 3", 85, true, "Bloque A");
+        // ACT
+        boolean resultado = v.tieneBateriaSuficiente(d);
+        // ASSERT
+        assertTrue(resultado);
+    }
+
+    @Test
+    @DisplayName("Drone con batería de 30% puede ser asignado")
+    void droneBateriaJusta_puedeAsignarse() {
+        Drone d = new Drone("D-01", "DJI Mini 3", 30, true, "Bloque A");
+        boolean resultado = v.tieneBateriaSuficiente(d);
+        assertTrue(resultado);
+    }
+
+    @Test
+    @DisplayName("Drone con batería < 30% NO puede ser asignado")
+    void droneBateriaCritica_noAsignable() {
+        Drone d = new Drone("D-04", "DJI Mini 3", 18, true, "Bloque B");
+        assertFalse(v.tieneBateriaSuficiente(d));
+    }
+
+    @Test
+    @DisplayName("Destino válido no lanza excepcion")
+    void destinoValido_NolanzaExcepcion() {
+        assertDoesNotThrow(() -> v.validarDestino("Bloque A"));
+    }
+
+    @Test
+    @DisplayName("Destino inválido lanza excepción")
+    void destinoInvalido_lanzaExcepcion() {
+        assertThrows(DestinoInvalidoException.class,
+            () -> v.validarDestino("Edificio Inexistente"));
+    }
+
+    @Test
+    @DisplayName("Destino nulo lanza excepción")
+    void destinoNulo_lanzaExcepcion() {
+        assertThrows(DestinoInvalidoException.class,
+            () -> v.validarDestino(null));
+    }
+
+    @Test
+    @DisplayName("Drone disponible puede ser asignado")
+    void droneDisponible_puedeAsignarse() {
+        Drone d = new Drone("D-01", "DJI Mini 3", 85, true, "Bloque A");
+        assertTrue(v.droneEstaDisponible(d));
+    }
+
+    @Test
+    @DisplayName("Drone ocupado no puede ser asignado")
+    void droneNoDisponible_noPuedeAsignarse() {
+        Drone d = new Drone("D-01", "DJI Mini 3", 85, false, "Bloque A");
+        assertFalse(v.droneEstaDisponible(d));
+    }
+
+    @Test
+    @DisplayName("Drone con referencia nula no puede ser asignado")
+    void droneNulo_noPuedeAsignarse() {
+        Drone drone = null;
+        assertFalse(v.droneEstaDisponible(drone));
+    }
+}
+```
+
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Reto 12 — TDD con JUnit 5 en ValidadorMision  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Suite Completa de Pruebas (9 Pruebas / Patrón AAA):** Implementaste los 9 métodos @Test distribuidos equitativamente entre las tres responsabilidades (tieneBateriaSuficiente, validarDestino y droneEstaDisponible), contemplando casos felices, límites exactos (30%), valores nulos y excepciones.  
+>  
+> **Integración del Ejecutor:** La captura del Test Runner confirma la ejecución exitosa de los 9 casos en VERDE ✅ (ValidadorMisionTest).  
+>  
+> **Diseño y Delegación:** La clase ValidadorMision actúa como una fachada limpia que delega la validación de batería y destinos a sus validadores correspondientes, manejando correctamente los valores nulos (drone == null) para evitar NullPointerException.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 13 · JaCoCo — COBERTURA DE CÓDIGO
+### Medir y limpiar el código del MVP con JaCoCo y SonarQube
+
+### Covertura de ValidadorMision con JaCoCo
+
+![](docs/images/ValidadorMision-coverage.png)
+
+### Issues del análisis estático con SonarQube
+#### ANTES
+![](docs/images/sonarqube-issues.png)
+
+#### DESPUES
+![](docs/images/sonarqube-issues-2.png)
+
+### Respuesta del Agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Cobertura JaCoCo y Análisis SonarQube  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Resolución Completa de Issues:** La nueva captura de SonarQube confirma "All issues 0" y muestra el mensaje "No Issues. Hooray!". Se eliminaron adecuadamente todos los Code Smells (incluyendo las impresiones por consola) y la deuda técnica quedó en 0 min.  
+>  
+> **Cobertura de Código (JaCoCo):** Se mantiene el 100% de Line Coverage y 100% de Branch Coverage en ValidadorMision, superando con éxito la meta mínima requerida del 80%.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 14 · SONARQUBE — ANÁLISIS ESTÁTICO DE CALIDAD
+### Analizar la calidad del código con SonarQube
+
+![](docs/images/sonarqube-overview.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Chimchar]**  
+> **Reto:** Integración y Análisis SonarQube  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Resumen de Métricas Registradas en el Análisis:**  
+> **(a)** Calificación general de mantenibilidad: A  
+> **(b)** Número de Code Smells (Maintainability issues): 0 (Se evidencia la resolución de 17 problemas cerrados en el historial).  
+> **(c)** Deuda técnica estimada (MTTR para mantenibilidad): 19 min (Registrada tras la corrección masiva de hallazgos).  
+>  
+> **Lo que está bien:**  
+>  
+> **Conexión Exitosa:** El proyecto SkyCampus-ECI-Ortiz se encuentra debidamente vinculado a SonarQube Cloud con 384 líneas de código analizadas.  
+>  
+> **Mejora en Mantenibilidad:** La gráfica "Maintainability issues closed over time" valida el cierre de 17 hallazgos de calidad de software, logrando la calificación máxima A en Mantenibilidad.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# **Monferno - SkyCampus v2**
+
+- **Nombre:** Cristian Camilo Ortiz Sánchez
+- **Carnet:** 1000105286
+- **Correo:** `cristian.ortiz-s@mail.escuelaing.edu.co`
+---
+
+La ECI expandió la flota. Ahora hay 20 drones de 3 tipos: `Mini` (hasta 500g, ágil), `Cargo` (hasta 2kg, lento) y `Express` (hasta 800g, rápido, batería limitada). Los paquetes tienen peso en gramos, nivel de prioridad (`URGENTE/NORMAL/BAJO`) y en algunos casos restricciones específicas.
+
+**Novedades v2:** El sistema asigna automáticamente el drone óptimo según el peso del paquete y la batería disponible. Cada vez que un drone cambia de estado (`DISPONIBLE → EN_VUELO → ATERRIZANDO → DISPONIBLE`), el sistema notifica automáticamente al operador y al sistema de log. Hay un nuevo actor: el Técnico de mantenimiento que gestiona drones en estado `FALLO`.
+
+**Nuevos tipos:** `TipoDrone: Enum(MINI, CARGO, EXPRESS)  Prioridad: Enum(URGENTE, NORMAL, BAJO)`
+
+## 01 · STREAMS & LAMBDAS
+
+#### 1. Mapa tipo de drone → número de misiones completadas hoy.
+
+```java
+Map<TipoDrone, Long> primeraConsulta = misiones.stream()
+    .filter(m -> m.estado() == EstadoMision.ENTREGADA)
+    .collect(Collectors.groupingBy(m -> m.drone().tipo(), Collectors.counting()));  
+```
+
+#### 2. Drone con más misiones completadas (usa groupingBy + counting + max)
+```java
+Drone segundaConsulta = misiones.stream()
+    .filter(m -> m.estado() == EstadoMision.ENTREGADA)
+    .collect(Collectors.groupingBy(m -> m.drone(), Collectors.counting()))
+    .entrySet().stream()
+    .max(Comparator.comparingLong(v -> v.getValue()))
+    .map(d -> d.getKey())
+    .get();     
+```
+#### 3. Porcentaje de misiones fallidas sobre el total.
+```java
+double terceraConsulta = ((double) misiones.stream()
+    .filter(m -> m.estado() == EstadoMision.FALLIDA)
+    .count() / misiones.size()) * 100;  
+```
+#### 4. ¿Existe alguna misión URGENTE en estado PENDIENTE hace más de 10 minutos?.
+
+```java
+boolean cuartaConsulta = misiones.stream()
+    .anyMatch(m -> (m.estado() == EstadoMision.PENDIENTE && 
+         m.prioridad() == Prioridad.URGENTE));
+```
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Consultas Estadísticas con Java Streams  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Consulta 1:** Correcto agrupamiento por TipoDrone y conteo de misiones entregadas usando groupingBy y counting().  
+>  
+> **Consulta 2:** Correcto hallazgo del dron con más misiones usando max() y mapeo directo. Se acepta el lanzamiento intencional de la excepción NoSuchElementException según tu especificación de dominio.  
+>  
+> **Consulta 3:** ¡Se corrigió el error de división entera! El cast explicito a (double) permite calcular el porcentaje real con decimales.  
+>  
+> **Consulta 4:** Se valida correctamente la existencia de misiones pendientes y urgentes respetando los campos definidos en el record Mision.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 02 · GITHUB & GITFLOW
+
+### EVIDENCIA
+```
+| * 6168eb4 (feature/Maria) feat: Implementacion maria
+* |   5b6f789 Merge branch 'feature/Ortiz-modelo-drone' into develop
+|\ \  
+| |/  
+|/|   
+| * 12bee29 refactor: Implementacion juan
+| * 4a1ab00 feat: agregar consultas monferno con streams
+* | d290a0c Merge branch 'feature/Ortiz-modelo-drone' into develop
+|\| 
+| * c70ce6d (origin/feature/Ortiz-modelo-drone) feat: análisis estático de calidad con sonarqube
+* | 7ea0dd4 Merge branch 'feature/Ortiz-modelo-drone' into develop
+|\| 
+| * baac789 feat: coverage con JaCoCo y corrección de los issues de SonarQube
+* | 1d1024c Merge branch 'feature/Ortiz-modelo-drone' into develop
+|\| 
+| * 6e5e7ee feat: GREEN - implementación de las validaciones | docs: Actualizacion README.md
+| * 6e46a3d test: RED - Drone con bateria >= 30 puede ser asignado
+
+```
+
+### Respuesta del Agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Manejo de Conflictos y Grafo de Integración en Git  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Grafo de Convergencia (git log --graph):** El árbol gráfico muestra claramente la bifurcación previa y la posterior convergencia de las ramas feature/Maria (6168eb4) e Implementation Juan (12bee29) integrándose en el commit de merge da9aae1.  
+>  
+> **Resolución de Conflicto:** El mensaje de commit merge: integra asignación automática y sistema de alertas confirma la integración exitosa de ambos cambios en el archivo compartido AsignadorMision.java.  
+>  
+> **Manejo de Ramas en develop:** La historia de Git refleja una secuencia de integración continua respetando la estructura del flujo de trabajo en equipo.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 03 · Patrones de Diseño
+
+### PATRON STRATEGY
+
+```java
+public interface DroneSelectionStrategy {
+    Optional<Drone> selectDrone(List<Drone> drones, Mision mision);
+}
+
+
+public class CompatibleTypeStrategy implements DroneSelectionStrategy {
+
+    @Override
+    public Optional<Drone> selectDrone(List<Drone> drones, Mision mision) {
+        return drones.stream()
+            .filter(Drone::disponible)
+            .filter(d -> d.tipoCompatible(mision))
+            .findFirst();
+    }
+    
+}
+
+
+public class HighestBatteryStrategy implements DroneSelectionStrategy {
+
+    @Override
+    public Optional<Drone> selectDrone(List<Drone> drones, Mision mision) {
+        return drones.stream()
+            .filter(Drone::disponible)
+            .filter(d -> d.capacidadGramos() >= mision.pesoPaqueteGramos())
+            .max(Comparator.comparing(Drone::bateria));
+    }
+    
+}
+
+
+public class LessAcumulatedUsageStrategy implements DroneSelectionStrategy {
+
+    private List<Mision> historialMisiones;
+
+    public LessAcumulatedUsageStrategy(List<Mision> historialMisiones) {
+        this.historialMisiones = historialMisiones;
+    }
+
+    @Override
+    public Optional<Drone> selectDrone(List<Drone> drones, Mision mision) {
+        return drones.stream()
+            .filter(Drone::disponible)
+            .filter(d -> d.capacidadGramos() >= mision.pesoPaqueteGramos())
+            .min(Comparator.comparing(d -> historialMisiones.stream()
+                .filter(m -> m.drone().equals(d)).count()));
+    }
+    
+}
+
+
+public class GestorMisiones {
+    
+    private DroneSelectionStrategy strategy;
+
+    public GestorMisiones(DroneSelectionStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public void setStrategy(DroneSelectionStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public Optional<Drone> asignarDrone(List<Drone> flota, Mision mision) {
+        return strategy.selectDrone(flota, mision);
+    }
+
+}
+```
+### PATRON OBSERVER
+
+```java
+public interface ObservadorDrone {
+    void onEstadoCambiado(Drone drone, EstadoDrone nuevo);
+}
+
+
+public class PanelOperador implements ObservadorDrone {
+    private static final Logger logger = Logger.getLogger(PanelOperador.class.getName());
+
+    @Override
+    public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
+        logger.info(String.format("[PANEL] Drone %s cambio de estado a: %s", drone.id(), nuevoEstado));
+    }
+}
+
+
+public class SistemaLog implements ObservadorDrone {
+    private static final Logger logger = Logger.getLogger(SistemaLog.class.getName());
+
+    @Override
+    public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
+        logger.info(String.format("[AUDITORÍA LOG] Dron %s. Estado actual: %s", drone.id(), nuevoEstado));
+    }
+}
+
+
+public class AlertaTecnico implements ObservadorDrone {
+    private static final Logger logger = Logger.getLogger(AlertaTecnico.class.getName());
+
+    @Override
+    public void onEstadoCambiado(Drone drone, EstadoDrone nuevoEstado) {
+        if (nuevoEstado == EstadoDrone.FALLO) {
+            logger.warning(String.format("[ALERTA TÉCNICA] El dron %s entró en estado FALLO.", drone.id()));
+        }
+    }
+}
+
+
+public class GestorFlota {
+    
+    private final List<ObservadorDrone> obs = new ArrayList<>();
+    void suscribir(ObservadorDrone o) { obs.add(o); }
+    Drone cambiarEstado(Drone d, EstadoDrone nuevo) {
+        Drone dronActualizado = new Drone(
+            d.id(),
+            d.modelo(),
+            d.bateria(),
+            d.disponible(),
+            d.ubicacion(),
+            nuevo,
+            d.tipo()
+        );
+        obs.forEach(o -> o.onEstadoCambiado(dronActualizado, nuevo));
+        return dronActualizado;
+    }
+}
+```
+
+La prueba de que añadir un 4to observador no requiere modificar GestorFlota es que si una parte de SkyCampus quisiera ser notificada cuando cambia el estado de un dron solo tendria que extender de ObservadorDrone y estár suscrita a los observers de GestorFlota, lo cual se puede hacer sin modificar la clase GestorFlota.
+
+### Respuesta del Agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Patrones Strategy y Observer (OCP)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Patrón Strategy:** Excelente refactorización. Se implementaron correctamente las 3 estrategias solicitadas (HighestBatteryStrategy, LessAcumulatedUsageStrategy y CompatibleTypeStrategy). La remoción del throw IllegalArgumentException en HighestBatteryStrategy respeta perfectamente el contrato del `Optional<Drone>`.  
+>  
+> **Patrón Observer & Inmutabilidad:** En GestorFlota.cambiarEstado corregiste el pase del objeto a los suscriptores, notificando con dronActualizado en lugar de la instancia vieja d. Además, el uso de java.util.logging.Logger en los observadores es impecable para mantener SonarQube libre de Code Smells.  
+>  
+> **Cumplimiento del OCP:** La explicación enviada justifica con precisión el Principio de Abierto/Cerrado (OCP). Dado que GestorFlota depende únicamente de la abstracción ObservadorDrone a través de su método suscribir(ObservadorDrone o), cualquier nuevo módulo (un 4to observador como AuditoriaSeguridad o un dashboard en tiempo real) solo necesita implementar la interfaz ObservadorDrone y registrarse dinámicamente en tiempo de ejecución. La clase GestorFlota se mantiene cerrada a modificación pero abierta a extensión, cumpliendo al 100% el objetivo del reto.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+---
+
+## 04 · Principios SOLID
+
+### Single Responsibility
+(a) `GestorDrone` asumía muchas responsabilidades, asignaba misiones, guardaba en base de datos, enviaba alertas, generaba reportes y calculaba las rutas.
+
+(b) En la versión 2 se delegó cada responsabilidad a clases especializadas: AsignadorMision que se encarga exclusivamente de coordinar la asignación o SistemaLog que solo registra eventos. Es decir estamos separando los servicios en varias clases con una unica responsabilidad.
+
+### Open/Closed
+Para cambiar la estrategia de selección de un dron o agregar un nuevo tipo de notificación, era obligatorio modificar el código de GestorDrone mediante condicionales if-else.
+
+Gracias al patrón Strategy (DroneSelectionStrategy) y al patrón Observer (ObservadorDrone), añadir un nuevo algoritmo o un nuevo suscriptor se realiza creando una nueva clase que implemente la interfaz correspondiente, sin alterar GestorMisiones ni GestorFlota.
+
+### Dependency Inversion
+(a) GestorDrone dependía directamente de operadores concretos y no de abstacciones.
+
+(b) En la version 2 ya se depende de abstracciones como ObservadorDrone y DroneSelectionStrategy y las estrategias concretas se agregan con setters
+
+### PRUEBA
+
+```java
+public class GestorMisionesStrategyTest {
+
+    private List<Drone> flota;
+    private Mision mision;
+
+    @BeforeEach
+    void setUp() {
+
+        final String modelo = "DJI Mini 3";
+
+        flota = List.of(
+            new Drone("D-01", modelo, 85, true,  "Bloque A", TipoDrone.CARGO),
+            new Drone("D-02", modelo, 42, false, "Biblioteca", TipoDrone.EXPRESS),
+            new Drone("D-03", modelo, 91, true,  "Bloque C", TipoDrone.MINI),
+            new Drone("D-04", modelo, 18, true,  "Bloque B", TipoDrone.EXPRESS),
+            new Drone("D-05", modelo, 67, true,  "Bloque D", TipoDrone.CARGO)
+        );
+
+        mision = new MisionBuilder()
+            .id("M1")
+            .drone(flota.get(3))
+            .origen("Bloque A")
+            .destino("Bloque B")
+            .tipoCarga(TipoCarga.CARPETA)
+            .prioridad(Prioridad.NORMAL)
+            .peso(300)
+            .build();
+    }
+
+    @Test 
+    @DisplayName("GestorMisiones funciona con cualquier EstrategiaAsignacion sin modificar su código")
+    public void gestorMisionesFuncionaConCualquierEstrategiaAsignacion() {
+        DroneSelectionStrategy estrategia = new HighestBatteryStrategy();
+        GestorMisiones gestor = new GestorMisiones(estrategia);
+
+        Optional<Drone> dron1 = gestor.asignarDrone(flota, mision);
+        assertEquals("D-03", dron1.get().id());
+
+        gestor.setStrategy(new CompatibleTypeStrategy());
+        Optional<Drone> dron2 = gestor.asignarDrone(flota, mision);
+        assertEquals("D-01", dron2.get().id());
+    }
+    
+}
+```
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Justificación SOLID y Prueba de Intercambiabilidad (OCP)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Lo que está bien:**  
+>  
+> **Justificación SRP:** Identificación clara de la violación en el MVP (acumulación de múltiples responsabilidades no relacionadas en GestorDrone) y explicación precisa de la delegación de responsabilidades en la v2 (AsignadorMision, SistemaLog, etc.).  
+>  
+> **Justificación OCP:** Explicación correcta sobre la eliminación de condicionales if-else acoplados, permitiendo extender el comportamiento del sistema mediante la implementación de las interfaces DroneSelectionStrategy y ObservadorDrone sin alterar las clases centrales.  
+>  
+> **Justificación DIP:** Identificación acertada del desacoplamiento, pasando de depender de clases concretas a depender de abstracciones inyectables mediante constructores y setters.  
+>  
+> **Prueba Unitaria de Intercambiabilidad (GestorMisionesStrategyTest):** La prueba demuestra de forma práctica y limpia cómo GestorMisiones puede alternar en tiempo de ejecución entre HighestBatteryStrategy y CompatibleTypeStrategy mediante setStrategy(), manteniendo intacta su estructura interna.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 05 · Diagrama de Contexto
+
+![](docs/images/DiagramaContextoSkyCampusV2.drawio.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Diagrama de Contexto (v1 MVP vs. v2)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Análisis de la Imagen e Integración:** El diagrama actualizado refleja con precisión los límites del sistema y las interacciones para la versión 2. Incorpora correctamente al nuevo actor **Técnico de mantenimiento** con el flujo "Registra mantenimiento de la flota", mantiene a los 3 actores principales (Operador, Solicitante y Admin) con sus responsabilidades del MVP, y conecta los **3 nuevos sistemas externos** (API Meteorológica, Control Aéreo ECI y Sistema de Alertas) con sus respectivos flujos etiquetados[cite: 1].
+>
+> **Crecimiento del Sistema:** Explicación clara de la evolución de 3 a 4 actores, la transición de 0 a 3 integraciones externas y la adición de 4 nuevos flujos de información orientados a la seguridad operacional[cite: 1].
+>
+> **Preservación del Núcleo:** Identificación precisa del mantenimiento de `SkyCampus App` como orquestador central y la continuidad de las funciones clave de solicitud, asignación y parametrización[cite: 1].
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 06 · RF y RNF
+
+|Código|Requerimiento|MoSCoW|Justificacion|
+|---|---|---|---|
+|SC-04|El sistema debe enviar una notificación cuando un drone entra en estado FALLO.|Should Have|Es importante para la seguridad en la operación, sin embargo no es elemental para el funcionamiento de la plataforma.|
+|SC-05|El sistema debe evaluar que las condiciones meteorológicas sean buenas antes de lanzar un drone.|Must Have|Es indispensable para evitar la pérdida de los equipos por factores climaticos|
+|SC-06|Permitir al técnico de mantenimiento gestionar los drones que se encuentran en estado FALLO. |Must Have|Requisito operativo necesario para reincorporar flota a la operación.|
+|SC-07|El sistema asigna automáticamente el drone de mayor batería disponible para cualquier misión. |Must Have|Sin asignación automática no hay operación autónoma.|
+
+#### REQUERIMIENTOS NO FUNCIONALES
+
+|Código|Requerimiento|
+|---|---|
+|SC-RNF-04|El algoritmo de asignación automática debe seleccionar el drone óptimo en menos de 500 ms para una flota de hasta 50 drones.|
+|SC-RNF-05|El sistema debe notificar al técnico de mantenimiento en menos de 200 ms desde que ocurre la transición al estado FALLO.|
+|SC-RNF-06|La consulta a la API Meteorológica debe tener un timeout máximo de 2 segundos.|
+|SC-RNF-07|La interfaz de gestión del Técnico de Mantenimiento debe cumplir con el estándar WCAG 2.1 Nivel AA.|
+
+#### DETECCIÓN DE TENSIÓN
+
+En RF-07 se menciona que el sistema asigna a CUALQUIER mision el drone de mayor batería disponible, pero en el RF-08 hay una excepción, cuando la misión es URGENTE se asigna el drone más rápido disponible. Entonces para el RF-07 no aplica el cualquier mision.
+
+La manera para resolver la tensión es especificar en RF-07 que es para cualquier mision que no sea urgente, de esta manera el desarrollador no se confunde y sabe que son dos casos distintos.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Requerimientos Funcionales, No Funcionales, MoSCoW y Tensión de Negocio  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Requerimientos Funcionales (RF) y MoSCoW:** Los 4 requerimientos funcionales (`SC-04` a `SC-07`) cubren con precisión las nuevas capacidades de la versión 2 (alertas de fallo, consulta meteorológica, gestión técnica de flota y asignación automática). La priorización MoSCoW está adecuadamente sustentada con justificaciones operativas claras.
+>
+> **Requerimientos No Funcionales (RNF) Medibles:** Los 4 RNF (`SC-RNF-04` a `SC-RNF-07`) incluyen métricas cuantitativas, concretas y auditables (tiempos límite en ms/segundos para algoritmos, latencias y timeouts, además de un estándar formal de accesibilidad WCAG 2.1 Nivel AA).
+>
+> **Detección y Resolución de Tensión (RF-07 vs. RF-08):** Se identificó correctamente la ambigüedad generada por la regla absoluta *"para cualquier misión"* en `SC-07`. La solución propuesta es acertada y directa: acotar explícitamente `SC-07` a misiones estándar (no urgentes) para que el desarrollador aplique una jerarquía de estrategias clara sin caer en inconsistencias.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 07 · PLANTILLA DOSW
+#### FUNCIONALIDAD
+|Código|SC-07|
+|---|---|
+|Nombre|Asignar automáticamente drone a misión|
+|Actor|Operador de drones|
+|Precondiciones|La solicitud de misión debe estar registrada en el sistema. Debe existir conexión con la API Meteorológica.|
+
+#### DATOS DE ENTRADA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|origen|Ubicación inicial del envío|`Enum(BLOQUE_A, BLOQUE_B, BLOQUE_C, BLOQUE_D, BIBLIOTECA)`|Debe ser un destino válido del campus.|Si|
+|destino|Ubicación final de la entrega|`Enum(BLOQUE_A, BLOQUE_B, BLOQUE_C, BLOQUE_D, BIBLIOTECA)`|Debe ser un destino válido del campus y diferente al origen|Si|
+|paquete|Estructura anidada con los datos de la carga|—|—|Si|
+|paquete.peso|Peso del paquete a transportar|`Integer`|En gramos. Valor entre 1 y 2000 g.|Si|
+|paquete.tipo|Categoría del elemento enviado|`Enum(SOBRE,CARPETA,LIBRO)`|Debe ser uno de los tipos soportados|No|
+|paquete.prioridad|Grado de urgencia del paquete|`Enum(URGENTE, NORMAL, BAJO)`|—|Si|
+
+
+#### DATOS DE SALIDA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|codigoMision|Identificador único de la misión creada|`String`|Debe ser generado automáticamente|Si|
+|estadoMision|Estado inicial de la misión asignada|Enum(ASIGNADA, CANCELADA)|—|Si|
+|droneAsignado|dron seleccionado|—|Calculado por el sistema según la estrategia activa|No|
+|droneAsignado.id|id del dron asignado|`String`|—|No|
+|droneAsignado.bateria|batería actual del dron asignado|`Integer`|Debe estár entre 0 y 100|No|
+|droneAsignado.tipo|Tipo o modelo del dron asignado|`Enum(LIGERO, CARGO, EXPRESS)`|Debe ser un tipo válido|No|
+
+#### FLUJO BÁSICO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|1|Sistema|Recibe la solicitud de la misión con los datos del paquete, origen y destino|—|
+|2|Sistema|Consulta las condiciones del clima actuales a la API meteorologica|FA-1|
+|3|Sistema|Filtra los drones disponibles que tienen batería mayor al 30%|FA-2|
+|4|Sistema|Aplica la estrategia de selección de dron activa|FA-3|
+|5|Sistema|valida que el dron seleccionado cumpla todas las reglas de negocio (capacidad de carga, restricciones de modelo)|FA-2, FA-3|
+|6|Sistema|Realiza la asignación del dron a la misión y actualiza el estado de la misión a ASIGNADA|—|
+|7|Sistema| notifica a todos los observadores registrados |—|
+
+#### FLUJO ALTERNO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|FA-1|Sistema|Cuando no hay drones disponibles o que tengan batería mayor al 30% se lanza una excepción con un mensaje de error indicando el problema y regresa al paso 1 |—|
+|FA-2|Sistema|Cuando las condiciones climáticas detectadas por la API meteorológica son adversas, el sistema suspende el lanzamiento|—|
+|FA-3|Sistema|Cuando un paquete supera la capacidad máxima o no cumple con las restricciones de tipo se lanza una excepción de capacidad excedida|—|
+
+#### REGLAS DE NEGOCIO
+
+|No.|Descripcion|
+|---|---|
+|1|Un drone debe contar obligatoriamente con un nivel de batería >= 30% para poder ser asignado auna misión.|
+|2|Un dron que sea tipo CARGO no puede transportar paquetes con un peso inferior a 100 gramos|
+|3|Las misiones marcadas con prioridad URGENTE deben ser atendidas utilizando la estrategia de asignación por velocidad|
+|4|Si las condiciones meteorológicas reportan lluvia o vientos muy fuertes, ningún lanzamiento puede ser autorizado.|
+
+### Respuesta del agente:
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Plantilla DOSW para la funcionalidad SC-07  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Desglose de Sub-Objetos:** Estructuración impecable de los atributos anidados (`paquete.peso`, `paquete.tipo`, `paquete.prioridad`, `droneAsignado.id`, `droneAsignado.bateria`, `droneAsignado.tipo`), definiendo con claridad los tipos de datos, obligatoriedad y el origen de salida (calculados por el sistema).
+>
+> **Secuencia del Flujo Básico:** El flujo cubre de forma ordenada la recepción de solicitud, consulta a la API meteorológica, filtrado de flota apta, aplicación del patrón Strategy, validación de reglas de negocio, asignación y disparo de notificaciones mediante el patrón Observer.
+>
+> **Mapeo de Flujos Alternos y Excepciones:** Definición correcta de las tres rutas de excepción requeridas (`FA-1` para indisponibilidad/batería, `FA-2` para condiciones climáticas adversas y `FA-3` para capacidad/restricción de tipo excedida), enlazados adecuadamente en la columna de excepciones del flujo básico.
+>
+> **Reglas de Negocio Claras:** Declaración explícita del umbral de batería (≥ 30%), restricción operativa del dron `CARGO` (< 100g), precedencia de la estrategia por velocidad para misiones `URGENTE` y restricción meteorológica.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 08 · Identidad y UX
+
+### TARJETA DE DRONE
+![](docs/images/tarjeta-drone.png)
+
+### FLUJO DE ASIGNACIÓN
+#### Panel de Operador
+![](docs/images/panel-flota.png)
+
+#### Flujo
+![](docs/images/flujo-asignacion.png)
+
+### Documentación
+
+#### Ley de Fitts
+Para la aplicación en las tarjetas de drone, el boton de **ASIGNAR MISIÓN** resalta con un color amarillo de alto contraste y un tamaño prominente. Esto reduce el tiempo de desplazamiento del cursor y minimiza errores al hacer clic.
+
+#### Ley de Hick
+El panel superior incluye métricas de resumen por categorías para evitar sobrecargar al operador con un listado extenso de drones sin clasificar.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Sistema de Diseño, Wireframes (Tarjeta de Drone y Flujo de Asignación) y Leyes UX  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Lo que está bien:**
+>
+> **Diseño de Componentes y Estados Operativos:** La representación visual del componente `DroneCard` cubre los 5 estados solicitados (`Disponible`, `En vuelo`, `En carga`, `Fallo` y `Mantenimiento`)[cite: 7]. Se adaptan con precisión los elementos visuales según el estado, como la línea de tiempo de progreso en vuelo[cite: 7], la cuenta regresiva e ícono de rayo en carga[cite: 7], y los banners contextuales de alerta o información para fallo y mantenimiento[cite: 7].
+>
+> **Secuencia del Flujo de Asignación Automática:** La interacción de 3 pantallas está estructurada con claridad: desde el panel de flota con mapa interactivo y tabla[cite: 6], pasando por la modal con validación previa de batería (≥ 30%) y selección de parámetros[cite: 5], hasta la pantalla de éxito con el código de misión generado automáticamente (`M-2026-001`)[cite: 5].
+>
+> **Justificación de Leyes UX:** Excelente aplicación de la **Ley de Fitts** al destacar los botones de acción principales (`ASIGNAR MISIÓN` / `Asignar misión`) con contraste y áreas de clic amplias[cite: 5, 7], y de la **Ley of Hick** al simplificar la carga cognitiva del operador mediante el resumen de métricas de flota por estado y el uso de controles segmentados[cite: 5, 6].
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 09 · Agilismo
+![](docs/images/captura-jira-5.png)
+
+### DoD
+    Pruebas unitarias con cobertura JaCoCo ≥80%
+    SonarQube: 0 bugs, 0 vulnerabilidades
+    Todos los criterios Gherkin de la HU pasan
+    Mergeado a develop con flujo GitFlow correcto
+
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Planificación de Sprint 1, Gherkin y Definition of Done (DoD)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Evidencias Verificadas:**
+>
+> **Configuración en Jira:** Se evidencia el Sprint 1 configurado con 5 HUs (SC-9 a SC-13) sumando 16 SP, dentro de la capacidad de 20 SP[cite: 8].
+>
+> **Criterios Gherkin:** Se constata que las 5 HUs cuentan con sus 2 escenarios Gherkin completos y detallados en Jira (Dado que / Cuando / Entonces)[cite: 9, 10, 11, 12, 13].
+>
+> **Cumplimiento de Criterios:** Evidencia visual validada correctamente frente al DoD estipulado.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 10 · Casos de Uso
+### Diagrama de casos de uso
+![](docs/images/DiagramaCasosUsoV2.png)
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Diagrama de Casos de Uso (v2) — Módulo de Misiones  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+> **ESTADO: APROBADO ✅**
+>
+> **Evidencias Verificadas:**
+>
+> **Herencia de Actores:** Correcta aplicación de la generalización entre Técnico de mantenimiento y Operador, evitando la duplicación de asociaciones de Casos de Uso[cite: 14].
+>
+> **Inclusiones (`<<include>>`):** 2 relaciones `<<include>> `representadas correctamente con la dirección de la flecha discontinua hacia los Casos de Uso requeridos (Validar disponibilidad y Validar condiciones climáticas)[cite: 14].
+>
+> **Extensiones y Condiciones (`<<extend>>`):** 2 relaciones `<<extend>>` configuradas adecuadamente apunten al Caso de Uso base y acompañadas de sus notas de condición de extensión explícitas (Batería < 30% y Batería 30-40%)[cite: 14].
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 11 · Mocks
+
+![](docs/images/flujo-completo-asignacion.png)
+
+### Documentación de los principios de Nielsen
+
+1. ***Visibilidad del estado del sistema:*** El sistema mantiene informado al operador sobre el estado actual de la flota usando indicadores, colores y etiquetas que permiten identificar rápidamente si un drone está disponible, en vuelo, en carga o presenta un fallo.
+   
+2. ***Correspondencia entre el sistema y el mundo real:*** La interfaz utiliza conceptos familiares para el operador, como drones, batería, ubicación. La información se presenta utilizando un lenguaje sencillo y relacionado directamente con la operación de reparto.
+   
+3. ***Control y libertad del usuario:*** El operador tiene control del proceso. Puede seleccionar o cambiar el drone propuesto, cancelar una asignación antes de confirmarla y regresar a pasos anteriores del formulario. También están disponibles las opciones de Confirmar o Cancelar.
+   
+4. ***Consistencia y estándares:*** Las tres pantallas mantienen la misma estructura visual, navegación, tipografía, colores, botones e iconografía.
+
+5. ***Prevención de errores:*** El sistema no permite seleccionar drones que no cumplan las condiciones de la misión y muestra advertencias cuando el paquete supera el peso máximo disponible y también bloquea el flujo cuando las condiciones climáticas no permiten realizar la misión.
+   
+6. ***Diseño estético y minimalista:*** La interfaz presenta únicamente la información necesaria para la operación, evitando elementos decorativos que puedan distraer al operador.
+   
+7. ***Ayudar a reconocer, diagnosticar y recuperarse de errores:*** Cuando las condiciones climáticas son adversas se informa que la misión está bloqueada y se explica la causa; cuando no hay drones disponibles se ofrece la opción de programar la misión para más tarde.
+   
+8.  ***Ayuda y documentación:*** Los mensajes de error y las restricciones incluyen información suficiente para que el operador comprenda qué está ocurriendo y pueda tomar una decisión adecuada sin necesidad de abandonar el flujo.
+
+### Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Flujo Completo UI/UX (3 Pantallas + 3 Estados de Error + Nielsen)  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Evidencias Verificadas:**  
+>  
+> **Pantallas del Flujo:** Secuencia lógica y completa de 3 pantallas (Panel de flota, Formulario con cálculo de aptitud en tiempo real y Confirmación con ruta/ETA)[cite: 15].  
+>  
+> **Estados de Error Requeridos:** Los 3 escenarios de error están diseñados explícitamente con mensajes de orientación y acciones de recuperación (Sin drones + reprogramación, Clima adverso con métricas de bloqueo y Peso excedido con límite máximo)[cite: 15].  
+>  
+> **Heurísticas de Nielsen:** Documentación y aplicación clara de 7 principios de diseño visual y de interacción en la parte inferior del prototipo (visibilidad, prevención de errores, consistencia, recuperación ante errores, etc.)[cite: 15].  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 12 · TDD
+
+### TDD para el ValidadorMision de SkyCampus
+
+### TEST CON MOCKITO
+
+```java
+@ExtendWith(MockitoExtension.class)
+public class AsignadorMisionTest {
+    @Mock
+    private ApiMeteorologica clima;
+    @Spy
+    private GestorFlota gestorFlota = new GestorFlota();
+    @Mock
+    private ObservadorDrone notificador;
+    @Spy
+    private GestorMisiones gestorMisiones = new GestorMisiones();
+
+    @InjectMocks
+    private AsignadorMision asignador;
+
+    private List<Drone> flota;
+
+    @BeforeEach
+    void setUp() {
+        gestorFlota.suscribir(notificador);
+        flota = List.of(
+                new Drone("D-01", "Modelo 1", 85, true,  "Bloque A", TipoDrone.CARGO),
+                new Drone("D-02", "Modelo 2", 42, false, "Biblioteca", TipoDrone.MINI),
+                new Drone("D-03", "Modelo 3", 91, true,  "Bloque C", TipoDrone.EXPRESS),
+                new Drone("D-04", "Modelo 4", 18, true,  "Bloque B", TipoDrone.EXPRESS),
+                new Drone("D-05", "Modelo 5", 67, true,  "Bloque D", TipoDrone.CARGO)
+        );
+    }
+
+    @Test
+    @DisplayName("Drone de mayor batería se asigna a misión NORMAL")
+    void misionNormal_asignaDroneMayorBateria() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        Mision mision = new MisionBuilder()
+                .id("M-01")
+                .origen("Bloque A")
+                .destino("Bloque B")
+                .tipoCarga(TipoCarga.SOBRE)
+                .prioridad(Prioridad.NORMAL)
+                .peso(200)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> asignado = asignador.asignarDrone(flota, mision);
+        assertTrue(asignado.isPresent());
+        assertEquals(91, asignado.get().bateria());
+        Mockito.verify(notificador).onEstadoCambiado(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void climaAdverso_retornaVacio() {
+        Mockito.when(clima.esApto()).thenReturn(false);
+        Mision mision = new MisionBuilder()
+                .id("M-01")
+                .origen("Bloque A")
+                .destino("Bloque B")
+                .peso(300)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flota, mision);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void sinDronesAptos_retornaVacio() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        List<Drone> flotaIncapaz = List.of(
+                new Drone("D-01", "Modelo 1", 10, true,  "Bloque A", TipoDrone.CARGO)
+        );
+        Mision mision = new MisionBuilder()
+                .id("M-01")
+                .origen("Bloque A")
+                .destino("Bloque C")
+                .peso(300)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flotaIncapaz, mision);
+        assertTrue(resultado.isEmpty());
+    }
+
+    @Test
+    void paqueteMuyPesado_retornaVacio() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        Mision misionExcedida = new MisionBuilder()
+                .id("M-04")
+                .origen("Bloque A")
+                .destino("Bloque C")
+                .peso(3000)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flota, misionExcedida);
+        assertTrue(resultado.isEmpty());
+        Mockito.verifyNoInteractions(notificador);
+    }
+
+    @Test
+    void misionUrgente_asignaDroneExpressMayorBateria() {
+        Mockito.when(clima.esApto()).thenReturn(true);
+        Mision misionUrgente = new MisionBuilder()
+                .id("M-05")
+                .origen("Bloque A")
+                .destino("Bloque B")
+                .prioridad(Prioridad.URGENTE)
+                .peso(300)
+                .drone(flota.get(0))
+                .build();
+        Optional<Drone> resultado = asignador.asignarDrone(flota, misionUrgente);
+        assertTrue(resultado.isPresent());
+        assertEquals("D-03", resultado.get().id());
+        assertEquals(TipoDrone.EXPRESS, resultado.get().tipo());
+        Mockito.verify(notificador).onEstadoCambiado(resultado.get(), EstadoDrone.EN_VUELO);
+    }
+
+}
+```
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Desarrollo Guiado por Pruebas (TDD) — `AsignadorMision`
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+>  
+> **ESTADO: APROBADO ✅**  
+>  
+> **Evidencias Verificadas:**  
+>  
+> **Ejecución de Pruebas Unitarias:** 5 de 5 pruebas ejecutadas en verde dentro del entorno de desarrollo sin fallos ni errores (5 tests passed).  
+>  
+> **Integración del Patrón Builder:** Construcción de objetos Mision empleando MisionBuilder() dentro de las fases de setup/arrange de cada test.  
+>  
+> **Mapeo del Ciclo Red-Green-Refactor:** Cumplimiento total de la lógica del negocio simulada mediante Mockito para el API meteorológico y observadores del sistema.  
+>  
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 13 · JaCoCo — Cobertura de código
+
+### COVERAGE JACOCO
+![](docs/images/skycampus-jacoco.png)
+![](docs/images/skycampus-jacoco-2.png)
+
+### ANALISIS ESTATICO SONARQUBE
+![](docs/images/sonarqube-issues-3.png)
+![](docs/images/sonarqube-issues-4.png)
+
+### Respuesta del Agente
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Monferno]**  
+> **Reto:** Quality Gate, Cobertura JaCoCo y SonarQube 
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━** >  
+> **ESTADO: APROBADO ✅** >  
+> **Evidencias Verificadas:** >  
+> **Métricas de Cobertura (JaCoCo):** Se evidencia el incremento de cobertura de código alcanzando un 81% en líneas y un 70% en ramas, superando la meta de la DoD (≥ 80%).
+>
+> **Análisis Estático (SonarQube):** Captura de resolución completa de issues pasando de 4 code smells a 0 issues activos (0 bugs, 0 vulnerabilidades, 0 esfuerzo de deuda técnica).
+>
+> **Cumplimiento de Quality Gate:** Las métricas de calidad de código y cobertura del proyecto SkyCampus v2 quedan formalmente consolidadas y aprobadas.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+
+## 14 · SonarQube — Análisis estático de calidad
+![](docs/images/sonarqube-overview-2.png)
+
+
+
+
+# **Infernape - SkyCampus Enterprise**
+
+- **Nombre:** Cristian Camilo Ortiz Sánchez
+- **Carnet:** 1000105286
+- **Correo:** `cristian.ortiz-s@mail.escuelaing.edu.co`
+---
+
+El éxito en la ECI llevó a que UNAL, Uniandes y EAFIT quisieran usar SkyCampus. Ahora es una red compartida: los drones pueden transferirse entre sedes, hay estaciones de carga intermedias, y una flota de 100 drones de 5 tipos gestiona entregas entre campus.
+
+Nuevas funcionalidades: Rutas multi-etapa (drone a estación de carga, carga, continuar ruta), optimización de flota compartida, analytics de eficiencia por sede, autorización de la Aerocivil para vuelos inter-sede, y un panel de superadmin para la red completa.
+
+Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sistema externo de regulación aérea), Estación de carga autónoma.
+
+    💡 En Infernape no se agregan features arbitrarias. Se profundiza en calidad: código con más patrones, requerimientos sin ambigüedades, cobertura de pruebas más alta, diseño más consistente.
+
