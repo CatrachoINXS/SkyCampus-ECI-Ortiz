@@ -1825,4 +1825,29 @@ Se mantuvo el flujo esencial de la operación. Las entidades principales como dr
 ### ¿Cómo evolucionó la complejidad sin perder la coherencia?
 La complejidad evolucionó separando las responsabilidades y desacoplando el dominio de los sistemas externos, de eso modo se pudo hacer una transición a microservicios que permitieran extender nuevas funcionalidades.
 
+## 06 · RF y RNF
+
+### Solución a la tension entre RF-12 yRNF-09
+
+Hay un conflicto entre el coordinador de sede quien quiere definir libremente el radio operativo de los drones y la Aerocivil quien fija reglas estrictas sobre el espacio aéreo.
+
+La solución es que el coordinador de sede se le permita definir el espacio aereo de acuerdo a las normas de aviación civil, pues es la autoridad que tiene prelación.
+
+### Matriz de Trazabilidad
+
+| Código | Requerimiento | MoSCoW | Caso de Uso (CU) Relacionado | Historia de Usuario (Jira) | 
+| :--- | :--- | :--- | :--- | :--- | 
+| **SC-01** | Registrar solicitud de reparto con datos del envío en estado PENDIENTE | **Must** | Registrar mision de reparto | |
+| **SC-02** | Ver drones disponibles con su batería actual en lista filtrada | **Must** |  | SC-3: Como operador, quiero ver qué drones están disponibles y su nivel de batería para asignar la misión al drone más adecuado. |
+| **SC-03** | Asignación manual de un dron seleccionado para un reparto | **Must** |Asignar manualmente dron a mision | SC-4: Como operador quiero asignar manualmente un drone a una misión para elegir el equipo con el que voy a transportar mi encargo entre las ubicaciones disponibles ||
+| **SC-04** | Enviar notificación cuando un dron entra en estado FALLO | **Should** | |  |
+| **SC-05** | Evaluar condiciones meteorológicas antes de lanzar un dron | **Must** | Validar condiciones climaticas | SC-10: DADO QUE la API meteorológica reporta clima despejado y vientos normales Y existe un drone asignado a la misión CUANDO el sistema consulta el estado del tiempo previo al despegue ENTONCES autoriza el lanzamiento de la misión Y cambia el estado de la misión a ASIGNADA|
+| **SC-06** | Permitir al técnico de mantenimiento gestionar drones en estado FALLO | **Must** | Diagnosticar fallo |  |
+| **SC-07** | Asignar automáticamente el dron de mayor batería para la misión | **Must** | | SC-9: DADO QUE existen 3 drones disponibles con batería ≥ 30% Y la solicitud de misión es de prioridad URGENTE con un paquete de 300g CUANDO el sistema ejecuta la asignación automática ENTONCES selecciona el drone de tipo EXPRESS con mayor porcentaje de batería Y cambia el estado del drone a EN_VUELO Y notifica al PanelOperador y al SistemaLog en menos de 500ms |
+| **RF-12** | Configurar radio máximo de vuelo por sede *(Ajustado por norma)* | **Could** | |  |
+| **SC-RNF-01** | Tiempo de ejecución de consultas de drones disponibles < 200ms | **Should** |  | |
+| **SC-RNF-02** | Asignación de misión completada en menos de 3 pantallas | **Must** | |  |
+| **SC-RNF-03** | Ofrecer opción de modo Daltonismo (protanopía, deuteranopía, tritanopía) | **Could** |  |  |
+| **SC-RNF-04** | Algoritmo de asignación automática < 500ms para hasta 50 drones | **Must** | |  |
+
 
