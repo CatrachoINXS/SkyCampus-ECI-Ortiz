@@ -1698,3 +1698,397 @@ Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sist
 
     💡 En Infernape no se agregan features arbitrarias. Se profundiza en calidad: código con más patrones, requerimientos sin ambigüedades, cobertura de pruebas más alta, diseño más consistente.
 
+## 01 · Streams & Lambdas
+
+### Consulta de la tasa de éxito por sede
+
+```java
+    public Map<Sede, Double> calcularTasaExitoPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> {
+                    List<Mision> misionesSede = misiones.stream()
+                            .filter(m -> m.sede() != null && m.sede().equals(sede))
+                            .toList();
+                    if (misionesSede.isEmpty()) return 0.0;
+                    long entregadas = misionesSede.stream()
+                            .filter(m -> m.estado() == EstadoMision.ENTREGADA)
+                            .count();
+                    return (double) entregadas / misionesSede.size();
+                }
+        ));
+    }
+```
+### Consulta del tiempo pormedio de entrega
+
+```java
+   public Map<Sede, Double> calcularTiempoPromedioPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> misiones.stream()
+                        .filter(m -> m.sede() != null && m.sede().equals(sede) && m.estado() == EstadoMision.ENTREGADA)
+                        .mapToDouble(m -> Mision.TIEMPO_ENTREGA_MINUTOS)
+                        .average()
+                        .orElse(0.0)
+        ));
+    }
+```
+### Consulta de el drone mas utilizado
+
+```java
+    public Map<Sede, Optional<Drone>> calcularDroneMasUtilizadoPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> misiones.stream()
+                        .filter(m -> m.sede() != null && m.sede().equals(sede) && m.drone() != null)
+                        .collect(Collectors.groupingBy(Mision::drone, Collectors.counting()))
+                        .entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+        ));
+    }
+```
+### Consulta del porcentaje de misiones urgentes por sede
+
+```java
+    public Map<Sede, Double> calcularPorcentajeUrgentesPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> {
+                    List<Mision> misionesSede = misiones.stream()
+                            .filter(m -> m.sede() != null && m.sede().equals(sede))
+                            .toList();
+                    if (misionesSede.isEmpty()) return 0.0;
+                    long urgentes = misionesSede.stream()
+                            .filter(m -> m.prioridad() == Prioridad.URGENTE)
+                            .count();
+                    return (double) urgentes / misionesSede.size();
+                }
+        ));
+    }
+```
+
+## 02 · GitHub
+
+```
+* 91c7cbe (HEAD -> main, tag: v3.0.1, develop) fix: corrige calculo de ruta entre ECI y UNAL con viento sur
+* 22ca2d8 (tag: v3.0.0) docs: actualiza CHANGELOG para la version 3.0.0
+* 93afe1c chore: bump version 3.0.0-SNAPSHOT -> 3.0.0
+*   4999da0 Merge branch 'feature/Ortiz-modelo-drone' into develop
+    |\  
+    | * 94a8fdb (feature/Ortiz-modelo-drone) feat: reto streams y lambdas infernape con sedes
+    | * 325e0e5 Analisis estático con sonarqube y coverage con jacoco v2
+    | * ba42613 feat: GREEN - Implementacion del asignador de misiones
+```
+
+## Respuesta del agente
+
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**  
+> **REVISIÓN — SkyCampus [Infernape]**  
+> **Reto:**  Simulación Gitflow: Release v3.0.0, Hotfix v3.0.1
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**   
+> **ESTADO: APROBADO ✅**
+>
+> **Evidencias Verificadas (`git log`):**
+>
+> **Estructura de Tags y Ramas:** > - Tag **`v3.0.0`** apuntando correctamente a la release de la versión 3.0.0.
+> - Tag **`v3.0.1`** asignado tras el merge del hotfix crítico.
+> - Sincronización perfecta entre las ramas **`main`** y **`develop`**.
+>
+> **Convención de Commits (Conventional Commits):**
+> - `chore: bump version 3.0.0-SNAPSHOT -> 3.0.0`
+> - `docs: actualiza CHANGELOG para la version 3.0.0`
+> - `fix: corrige calculo de ruta entre ECI y UNAL con viento sur`
+>
+> **Trazabilidad de Historial:** Se evidencia la integración previa de las tareas del proyecto (`feat: reto streams...`, `Analisis estático...`, `GREEN - Implementacion...`) sobre el flujo de integración continua.
+>
+> **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+>
+
+## 03 · Patrones de Diseño
+
+### Composite
+![](docs/images/DiagramasInfernape-Composite.drawio.png)
+
+**Justificacion:** Porque este patrón nos permite ejecutar y calcular la distancia total de una ruta de forma transparente, independientemente si la ruta tiene 2 o más puntos.
+
+### Strategy
+![](docs/images/DiagramasInfernape-Strategy.drawio.png)
+
+**Justificacion:** Porque permite encapsular los algoritmos de navegación para poder cambiar de una ruta rápida a una de bajo consumo sin modificar la estructura de GestorMisiones.
+
+### Observer
+![](docs/images/DiagramasInfernape-Observer.drawio.png)
+
+**Justificacion:** Porque mantiene desacoplada la ejecución de la ruta de los sistemas las alertas, las rutas no conocen a los observadores.
+
+### Factory
+![](docs/images/DiagramasInfernape-Factory.drawio.png)
+
+**Justificacion:** Porque cada etapa puede requerir un drone distinto. El patrón Factory abstrae la lógica de inicialización.
+
+## 04 · Principios SOLID
+
+```java
+public class AsignadorMisionInfernape {
+    
+    private final RepositorioFlota   repo;
+    private final ServicioClima      clima;
+    private final DroneSelectionStrategy estrategia;
+    private final ObservadorDrone    notificador;
+
+    public AsignadorMisionInfernape(
+            RepositorioFlota r, ServicioClima c,
+            DroneSelectionStrategy e, ObservadorDrone n) {
+        this.repo = r; this.clima = c;
+        this.estrategia = e; this.notificador = n;
+    }
+
+    public void prueba() {
+        repo.findDisponibles("ECI");
+        clima.condicionesAptas("Bloque A", "Bloque C");
+        estrategia.selectDrone(null, null);
+        notificador.onEstadoCambiado(null, null);
+    }
+}
+```
+
+Como vemos la clase no está acoplada a ninguna llamada HTTP real ni base de datos.
+
+```java
+@ExtendWith(MockitoExtension.class)
+public class AsignadorMisionInfernapeTest {
+    @Mock
+    private RepositorioFlota repo;
+    @Mock
+    private ServicioClima clima;
+    @Mock
+    private DroneSelectionStrategy estrategia;
+    @Mock
+    private ObservadorDrone notificador;
+    @InjectMocks
+    private AsignadorMisionInfernape asignador;
+
+    @Test
+    @DisplayName("Verifica que el método prueba() invoque a todos sus colaboradores")
+    void verificarInvocacionDeMetodos() {
+    
+        asignador.prueba();
+        verify(repo, times(1)).findDisponibles(any());
+        verify(clima, times(1)).condicionesAptas(any(), any());
+        verify(estrategia, times(1)).selectDrone(any(), any());
+        verify(notificador, times(1)).onEstadoCambiado(any(), any());
+    }
+}
+```
+## 05 · Diagrama de Contexto
+
+![](docs/images/DiagramaContextoSkyCampusEnterprise.drawio.png)
+
+### ¿Qué creció?
+* **Actores y Jerarquía de Usuarios:** Se pasó de una gestión local con 3 actores (`Operador`, `Solicitante`, `Admin`) y un rol de mantenimiento, a un modelo más grande con **6 actores**, agregando `Superadmin` (administración global de red) y `Coordinador de Sede` (supervisión y métricas).
+* **Integraciones y Sistemas Externos:** Se avanzó hacia un ecosistema regulado institucionalmente que incorpora entes reguladores nacionales (`Aerocivil`), gestión académica (`ERP Universitario`) y analítica avanzada (`Plataforma Analytics`).
+
+### ¿Qué se mantuvo?
+Se mantuvo el flujo esencial de la operación. Las entidades principales como drones y misiones continuaron siendo la columna vertebral de la solución, manteniendo la coherencia en cada etapa.
+
+### ¿Cómo evolucionó la complejidad sin perder la coherencia?
+La complejidad evolucionó separando las responsabilidades y desacoplando el dominio de los sistemas externos, de eso modo se pudo hacer una transición a microservicios que permitieran extender nuevas funcionalidades.
+
+## 06 · RF y RNF
+
+### Solución a la tension entre RF-12 yRNF-09
+
+Hay un conflicto entre el coordinador de sede quien quiere definir libremente el radio operativo de los drones y la Aerocivil quien fija reglas estrictas sobre el espacio aéreo.
+
+La solución es que el coordinador de sede se le permita definir el espacio aereo de acuerdo a las normas de aviación civil, pues es la autoridad que tiene prelación.
+
+### Matriz de Trazabilidad
+
+| Código | Requerimiento | MoSCoW | Caso de Uso (CU) Relacionado | Historia de Usuario (Jira) | 
+| :--- | :--- | :--- | :--- | :--- | 
+| **SC-01** | Registrar solicitud de reparto con datos del envío en estado PENDIENTE | **Must** | Registrar mision de reparto | |
+| **SC-02** | Ver drones disponibles con su batería actual en lista filtrada | **Must** |  | SC-3: Como operador, quiero ver qué drones están disponibles y su nivel de batería para asignar la misión al drone más adecuado. |
+| **SC-03** | Asignación manual de un dron seleccionado para un reparto | **Must** |Asignar manualmente dron a mision | SC-4: Como operador quiero asignar manualmente un drone a una misión para elegir el equipo con el que voy a transportar mi encargo entre las ubicaciones disponibles ||
+| **SC-04** | Enviar notificación cuando un dron entra en estado FALLO | **Should** | |  |
+| **SC-05** | Evaluar condiciones meteorológicas antes de lanzar un dron | **Must** | Validar condiciones climaticas | SC-10: DADO QUE la API meteorológica reporta clima despejado y vientos normales Y existe un drone asignado a la misión CUANDO el sistema consulta el estado del tiempo previo al despegue ENTONCES autoriza el lanzamiento de la misión Y cambia el estado de la misión a ASIGNADA|
+| **SC-06** | Permitir al técnico de mantenimiento gestionar drones en estado FALLO | **Must** | Diagnosticar fallo |  |
+| **SC-07** | Asignar automáticamente el dron de mayor batería para la misión | **Must** | | SC-9: DADO QUE existen 3 drones disponibles con batería ≥ 30% Y la solicitud de misión es de prioridad URGENTE con un paquete de 300g CUANDO el sistema ejecuta la asignación automática ENTONCES selecciona el drone de tipo EXPRESS con mayor porcentaje de batería Y cambia el estado del drone a EN_VUELO Y notifica al PanelOperador y al SistemaLog en menos de 500ms |
+| **RF-12** | Configurar radio máximo de vuelo por sede *(Ajustado por norma)* | **Could** | |  |
+| **SC-RNF-01** | Tiempo de ejecución de consultas de drones disponibles < 200ms | **Should** |  | |
+| **SC-RNF-02** | Asignación de misión completada en menos de 3 pantallas | **Must** | |  |
+| **SC-RNF-03** | Ofrecer opción de modo Daltonismo (protanopía, deuteranopía, tritanopía) | **Could** |  |  |
+| **SC-RNF-04** | Algoritmo de asignación automática < 500ms para hasta 50 drones | **Must** | |  |
+
+## 07 · Plantilla DOSW
+
+|Código|SC-15|
+|---|---|
+|Nombre|Planificar ruta multi-etapa inter-sede|
+|Actor|Operador de drones|
+|Precondiciones|La solicitud de misión inter-sede debe estar registrada en el sistema. Debe existir conexión activa con el servicio de la Aerocivil y con la red de estaciones de carga.|
+
+#### DATOS DE ENTRADA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|sedeOrigen|Sede donde inicia el recorrido|`Sede`|Nombre de la sede de origen válida registrada en el sistema|Sí|
+|sedeDestino|Sede final de la entrega|`Sede`|Nombre de la sede destino válida registrada en el sistema y diferente a la sede de origen|Sí|
+|paquete|Estructura anidada con los datos de la carga|—|—|Sí|
+|paquete.peso|Peso del paquete a transportar|`Integer`|En gramos. Valor entre 1 y 2000 g|Sí|
+|paquete.tipo|Categoría del elemento enviado|`Enum(SOBRE, CARPETA, LIBRO)`|Debe ser uno de los tipos soportados|Sí|
+|paquete.prioridad|Grado de urgencia de la entrega|`Enum(URGENTE, NORMAL, BAJO)`|Determina la prioridad de paso en estaciones|Sí|
+|restriccionesEspeciales|Parámetros opcionales de manejo|`String`|—|No|
+|condicionesEspacioAereo|Estado reportado de las zonas de vuelo|`String`|Datos provistos por la Aerocivil|Sí|
+
+#### DATOS DE SALIDA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|codigoRuta|Identificador único del plan de vuelo multi-etapa|`String`|Generado automáticamente por el sistema|Sí|
+|estadoRuta|Estado de la planificación realizada|`Enum(CONFIRMADA, RECHAZADA_AEROCIVIL, SIN_ESTACION, PESO_EXCEDIDO)`|Indica el resultado final del cálculo|Sí|
+|distanciaTotal|Distancia acumulada del recorrido inter-sede|`Double`|En kilómetros|Sí|
+
+#### FLUJO BÁSICO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|1|Sistema|Recibe la solicitud de ruta inter-sede con los sub-objetos del paquete, sedes y condiciones del espacio aéreo|—|
+|2|Sistema|Verifica la autorización del trayecto con el servicio de la Aerocivil|FA-1|
+|3|Sistema|Valida que el peso del paquete sea adecuado para la distancia del trayecto proyectado|FA-3|
+|4|Sistema|Calcula la división del trayecto en etapas respetando la distancia máxima continua permitida por tramo|—|
+|5|Sistema|Asigna y reserva la estación de carga intermedia requerida para la recarga|FA-2|
+|6|Sistema|Asigna los drones requeridos para cubrir cada etapa del recorrido según la carga y batería|—|
+|7|Sistema|Confirma el plan de vuelo completo e inicia la ejecución de la misión|—|
+
+#### FLUJO ALTERNO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|FA-1|Sistema|Cuando la Aerocivil rechaza el permiso por restricciones en el espacio aéreo o clima, el sistema cancela la planificación.|—|
+|FA-2|Sistema|Cuando no hay estación de carga disponible en la ruta o los cupos están llenos, el sistema detiene el proceso y cancela el despegue|—|
+|FA-3|Sistema|Cuando el peso del paquete supera el límite permitido para trayectos largos, el sistema interrumpe la asignación, genera el estado PESO_EXCEDIDO y notifica la restricción|—|
+
+#### REGLAS DE NEGOCIO
+
+|No.|Descripción|
+|---|---|
+|1|Un drone no puede volar más de 5 km continuos cuando lleva carga sin realizar una recarga de batería.|
+|2|Un paquete no puede permanecer detenido en una estación de carga intermedia por más de 30 minutos.|
+|3|Si la Aerocivil reporta restricción temporal en cualquier tramo urbano, la ruta entera queda suspendida.|
+
+## 08 · Identidad y UX
+
+![](docs/images/PanelSkyCampusMultiuniversidad.png)
+
+## 09 · Agilismo
+
+#### Sprint 1: Conectividad Multi-Sede Básica
+* **Objetivo del Sprint:** Desplegar la infraestructura base distribuida, API Gateway y la gestión de usuarios/sedes para permitir la comunicación segura entre múltiples sedes.
+* **Story Points totales:** 32 SP
+
+| ID Historia | Historia de Usuario (HU) | Story Points (SP) | Responsable |
+| :--- | :--- | :--- | :--- |
+| `SKY-108` | Como Superadmin quiero gestionar sedes y roles para controlar el acceso a la red multi-sede | 8 SP | Backend Lead |
+| `SKY-109` | Como sistema quiero configurar el API Gateway para enrutar las peticiones entre microservicios | 8 SP | DevOps / Infra |
+| `SKY-110` | Como operador quiero autenticarme mediante JWT para acceder a los servicios de mi sede | 5 SP | Backend Dev |
+| `SKY-112` | Como coordinador de sede quiero configurar el radio de vuelo para establecer el límite operativo de mi sede | 5 SP | Backend Dev |
+| `SKY-203` | Como oficial de seguridad quiero cifrar el tráfico inter-servicios mediante HTTPS/TLS | 6 SP | DevOps / Infra |
+
+---
+
+#### Sprint 2: Rutas Multi-Etapa y Estaciones de Carga
+* **Objetivo del Sprint:** Implementar el cálculo de rutas compuestas (inter-sede), la integración con la API de Aerocivil y la reserva de estaciones de carga intermedias.
+* **Story Points totales:** 34 SP
+
+| ID Historia | Historia de Usuario (HU) | Story Points (SP) | Responsable |
+| :--- | :--- | :--- | :--- |
+| `SKY-105` | Como Servicio de Rutas quiero calcular la división de viajes inter-sede en etapas de máximo 5 km | 8 SP | Backend Lead |
+| `SKY-115` | Como sistema quiero reservar estaciones de carga intermedias garantizando paradas < 30 min | 8 SP | Backend Dev |
+| `SKY-209` | Como sistema quiero validar las rutas con la API de Aerocivil para no superar los 120m de altura | 8 SP | Integration Dev |
+| `SKY-102` | Como sistema quiero seleccionar drones por capacidad y batería para cubrir cada etapa | 5 SP | Backend Dev |
+| `SKY-106` | Como usuario quiero recibir notificaciones de eventos en los cambios de etapa | 5 SP | Frontend Dev |
+
+---
+
+#### Sprint 3: Analytics y Panel Superadmin
+* **Objetivo del Sprint:** Construir la infraestructura de telemetría, tableros de métricas globales y la integración con la plataforma de analítica externa.
+* **Story Points totales:** 31 SP
+
+| ID Historia | Historia de Usuario (HU) | Story Points (SP) | Responsable |
+| :--- | :--- | :--- | :--- |
+| `SKY-107` | Como Coordinador quiero visualizar dashboards con tiempos de entrega y rendimiento por sede | 8 SP | Frontend Lead |
+| `SKY-118` | Como Servicio de Analytics quiero exportar eventos de vuelo a la Plataforma de Analytics externa | 8 SP | Data / Backend |
+| `SKY-119` | Como Superadmin quiero monitorear el estado global de todas las sedes en tiempo real | 8 SP | Frontend Dev |
+| `SKY-201` | Como equipo de operaciones quiero realizar pruebas de carga para asegurar 99.5% de disponibilidad | 7 SP | QA / DevOps |
+
+---
+
+### Retrospectiva Sprint 1
+
+#### Cosas que salieron bien
+1. El API Gateway se configuró a tiempo.
+2. Los DTOs e interfaces de dominio se acordaron desde el Sprint Planning, lo que redujo bloqueos en el desarrollo backend.
+3. Las reuniones dailys de 15 minutos fueron directas y ayudaron a despejar de inmediato dudas con la configuración de Docker.
+
+#### Cosas a mejorar
+1. Los certificados HTTPS/TLS de prueba tomaron más tiempo del que habiamos pensado porque no estaban estandarizados en los entornos locales de desarrollo.
+2. La historia `SKY-108` dependía de permisos complejos que no se detallaron completamente en el refinamiento.
+3. Las pruebas de comunicación se dejaron para el último día del sprint, lo qye generó estrés al final.
+
+#### Compromisos de Mejora
+
+| # | Compromiso Concreto | Responsable | Fecha Límite (Due Date) |
+| :--- | :--- | :--- | :--- |
+| **1** | Crear un script de automatización para la generación y carga local de certificados SSL/TLS en Docker. | **DevOps Lead** | 14 de Octubre de 2026 |
+| **2** | Desglosar las historias complejas con más de 5 SP en tareas técnicas de máximo 2 SP durante la sesión de Refinamiento. | **Scrum Master** | 16 de Octubre de 2026 |
+
+## 10 · Casos de Uso
+
+![](docs/images/DiagramaCasosUsoEnterprise.png)
+
+## 11 · Mocks y Prototipos
+
+Prototipo: [skycampus_enterprise_prototype.html](docs/skycampus_enterprise_prototype.html)
+(Abrir en un navegador)
+
+## 12 · TDD
+
+### Cobertura con JaCoCo
+![](docs/images/skycampus-jacoco-3.png)
+
+## 13 · JaCoCo — Cobertura de código
+
+### 1. `HighestBatteryStrategy.java` 
+**Regla:** `javabugs:S2259` | **Causa raíz:** Invocación de `.stream()` sobre la colección `drones` sin validación previa de nulos, permitiendo que la recepción de argumentos `null` provoque un `NullPointerException` en tiempo de ejecución.
+
+---
+
+### 2. `LessAcumulatedUsageStrategy.java`
+**Regla:** `javabugs:S2259` | **Causa raíz:** Uso directo de `drones.stream()` sin verificación de nulos en los parámetros de entrada ni en la colección invocada dentro del comparador, lo que genera un flujo de datos propenso a `NullPointerException`.
+
+---
+
+### 3. `AsignadorMisionInfernape.java`
+**Regla:** `javabugs:S2259` | **Causa raíz:** Ejecución de llamadas explícitas con argumentos `null` (`selectDrone(null, null)` y `onEstadoCambiado(null, null)`) dentro del método de prueba de producción, desencadenando la propagación de referencias nulas.
+
+---
+
+### 4. `RutaComposite.java` / `RutaComponent.java`
+**Regla:** `java:S3958` | **Causa raíz:** Uso de la operación intermedia `rutas.stream().peek(...)` sin declarar una operación terminal, lo que provoca que la canalización del Stream no se ejecute y se omitan los efectos secundarios esperados.
+
+---
+
+### 5. `NotificadorRuta.java` / `Subject.java`
+**Regla:** `java:S3958` | **Causa raíz:** Declaración del Stream intermedio `observadores.stream().peek(...)` para notificar observadores sin asociar una operación final, omitiendo la invocación real del método `notificarAlertaRuta`.
+
+---
+
+### 6. `ObserverRutaImpl.java`
+**Regla:** `java:S3958` | **Causa raíz:** Implementación de `peek()` dentro de una tubería de Stream sin consumir con una operación terminal, dejando la notificación de alertas inoperativa[cite: 7].
+
+## 14 · SonarQube — Análisis estático de calidad
+
+![](docs/images/sonarqube-overview-3.png)
+
+Los issues fueron corregidos en el reto 13 en el cual también se solicitaba analizar el proyecto con SonarQube.
