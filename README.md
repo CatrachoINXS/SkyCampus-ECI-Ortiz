@@ -1906,3 +1906,8 @@ La solución es que el coordinador de sede se le permita definir el espacio aere
 |1|Un drone no puede volar más de 5 km continuos cuando lleva carga sin realizar una recarga de batería.|
 |2|Un paquete no puede permanecer detenido en una estación de carga intermedia por más de 30 minutos.|
 |3|Si la Aerocivil reporta restricción temporal en cualquier tramo urbano, la ruta entera queda suspendida.|
+
+## 08 · Identidad y UX
+
+![](docs/images/PanelSkyCampusMultiuniversidad.png)
+
