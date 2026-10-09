@@ -31,7 +31,7 @@ public class RutaSimple implements RutaComponent, Subject {
     @Override
     public void ejecutarRuta() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.info(String.format("Ejecutando ruta simple: " + origen + " - " + destino));
+            logger.info("Ejecutando ruta simple: " + origen + " - " + destino);
         }
     }
 
@@ -47,7 +47,7 @@ public class RutaSimple implements RutaComponent, Subject {
 
     @Override
     public void notificarObservers() {
-        observadores.stream().peek(Observer::notificarAlertaRuta);
+        observadores.forEach(Observer::notificarAlertaRuta);
     }
     
 }

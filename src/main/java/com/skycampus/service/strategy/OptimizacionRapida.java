@@ -12,7 +12,7 @@ public class OptimizacionRapida implements OptimizacionStrategy {
     @Override
     public void optimizar(RutaComponent ruta) {
         if (logger.isLoggable(Level.INFO)) {
-            logger.info(String.format("Optimizando ruta para MINIMIZAR TIEMPO. Distancia: " + ruta.calcularDistancia()));
+            logger.info("Optimizando ruta para MINIMIZAR TIEMPO. Distancia: " + ruta.calcularDistancia());
         }
     }
 }

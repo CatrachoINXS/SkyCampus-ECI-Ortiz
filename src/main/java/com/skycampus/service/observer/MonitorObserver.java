@@ -10,7 +10,7 @@ public class MonitorObserver implements Observer {
     @Override
     public void notificarAlertaRuta() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.info(String.format("Monitor Observer notificado de ruta"));
+            logger.info("Monitor Observer notificado de ruta");
         }
     }
     

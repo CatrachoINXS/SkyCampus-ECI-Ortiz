@@ -1698,6 +1698,76 @@ Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sist
 
     💡 En Infernape no se agregan features arbitrarias. Se profundiza en calidad: código con más patrones, requerimientos sin ambigüedades, cobertura de pruebas más alta, diseño más consistente.
 
+## 01 · Streams & Lambdas
+
+### Consulta de la tasa de éxito por sede
+
+```java
+    public Map<Sede, Double> calcularTasaExitoPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> {
+                    List<Mision> misionesSede = misiones.stream()
+                            .filter(m -> m.sede() != null && m.sede().equals(sede))
+                            .toList();
+                    if (misionesSede.isEmpty()) return 0.0;
+                    long entregadas = misionesSede.stream()
+                            .filter(m -> m.estado() == EstadoMision.ENTREGADA)
+                            .count();
+                    return (double) entregadas / misionesSede.size();
+                }
+        ));
+    }
+```
+### Consulta del tiempo pormedio de entrega
+
+```java
+   public Map<Sede, Double> calcularTiempoPromedioPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> misiones.stream()
+                        .filter(m -> m.sede() != null && m.sede().equals(sede) && m.estado() == EstadoMision.ENTREGADA)
+                        .mapToDouble(m -> Mision.TIEMPO_ENTREGA_MINUTOS)
+                        .average()
+                        .orElse(0.0)
+        ));
+    }
+```
+### Consulta de el drone mas utilizado
+
+```java
+    public Map<Sede, Optional<Drone>> calcularDroneMasUtilizadoPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> misiones.stream()
+                        .filter(m -> m.sede() != null && m.sede().equals(sede) && m.drone() != null)
+                        .collect(Collectors.groupingBy(Mision::drone, Collectors.counting()))
+                        .entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+        ));
+    }
+```
+### Consulta del porcentaje de misiones urgentes por sede
+
+```java
+    public Map<Sede, Double> calcularPorcentajeUrgentesPorSede(List<Mision> misiones, List<Sede> sedes) {
+        return sedes.stream().collect(Collectors.toMap(
+                sede -> sede,
+                sede -> {
+                    List<Mision> misionesSede = misiones.stream()
+                            .filter(m -> m.sede() != null && m.sede().equals(sede))
+                            .toList();
+                    if (misionesSede.isEmpty()) return 0.0;
+                    long urgentes = misionesSede.stream()
+                            .filter(m -> m.prioridad() == Prioridad.URGENTE)
+                            .count();
+                    return (double) urgentes / misionesSede.size();
+                }
+        ));
+    }
+```
+
 ## 02 · GitHub
 
 ```
@@ -1984,3 +2054,41 @@ Prototipo: [skycampus_enterprise_prototype.html](docs/skycampus_enterprise_proto
 
 ## 12 · TDD
 
+### Cobertura con JaCoCo
+![](docs/images/skycampus-jacoco-3.png)
+
+## 13 · JaCoCo — Cobertura de código
+
+### 1. `HighestBatteryStrategy.java` 
+**Regla:** `javabugs:S2259` | **Causa raíz:** Invocación de `.stream()` sobre la colección `drones` sin validación previa de nulos, permitiendo que la recepción de argumentos `null` provoque un `NullPointerException` en tiempo de ejecución.
+
+---
+
+### 2. `LessAcumulatedUsageStrategy.java`
+**Regla:** `javabugs:S2259` | **Causa raíz:** Uso directo de `drones.stream()` sin verificación de nulos en los parámetros de entrada ni en la colección invocada dentro del comparador, lo que genera un flujo de datos propenso a `NullPointerException`.
+
+---
+
+### 3. `AsignadorMisionInfernape.java`
+**Regla:** `javabugs:S2259` | **Causa raíz:** Ejecución de llamadas explícitas con argumentos `null` (`selectDrone(null, null)` y `onEstadoCambiado(null, null)`) dentro del método de prueba de producción, desencadenando la propagación de referencias nulas.
+
+---
+
+### 4. `RutaComposite.java` / `RutaComponent.java`
+**Regla:** `java:S3958` | **Causa raíz:** Uso de la operación intermedia `rutas.stream().peek(...)` sin declarar una operación terminal, lo que provoca que la canalización del Stream no se ejecute y se omitan los efectos secundarios esperados.
+
+---
+
+### 5. `NotificadorRuta.java` / `Subject.java`
+**Regla:** `java:S3958` | **Causa raíz:** Declaración del Stream intermedio `observadores.stream().peek(...)` para notificar observadores sin asociar una operación final, omitiendo la invocación real del método `notificarAlertaRuta`.
+
+---
+
+### 6. `ObserverRutaImpl.java`
+**Regla:** `java:S3958` | **Causa raíz:** Implementación de `peek()` dentro de una tubería de Stream sin consumir con una operación terminal, dejando la notificación de alertas inoperativa[cite: 7].
+
+## 14 · SonarQube — Análisis estático de calidad
+
+![](docs/images/sonarqube-overview-3.png)
+
+Los issues fueron corregidos en el reto 13 en el cual también se solicitaba analizar el proyecto con SonarQube.

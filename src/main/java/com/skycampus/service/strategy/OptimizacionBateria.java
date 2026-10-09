@@ -12,7 +12,7 @@ public class OptimizacionBateria implements OptimizacionStrategy {
     @Override
     public void optimizar(RutaComponent ruta) {
         if (logger.isLoggable(Level.INFO)) {
-            logger.info(String.format("Optimizando ruta para AHORRO DE BATERÍA."));
+            logger.info("Optimizando ruta para AHORRO DE BATERÍA.");
         }
     }
 }

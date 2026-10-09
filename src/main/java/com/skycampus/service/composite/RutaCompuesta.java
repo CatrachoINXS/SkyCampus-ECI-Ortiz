@@ -24,7 +24,7 @@ public class RutaCompuesta implements RutaComponent, Subject {
 
     @Override
     public void ejecutarRuta() {
-        rutas.stream().peek(RutaComponent::ejecutarRuta);
+        rutas.forEach(RutaComponent::ejecutarRuta);
     }
 
     @Override
@@ -39,6 +39,6 @@ public class RutaCompuesta implements RutaComponent, Subject {
 
     @Override
     public void notificarObservers() {
-        observadores.stream().peek(Observer::notificarAlertaRuta);
+        observadores.forEach(Observer::notificarAlertaRuta);
     }
 }
