@@ -1760,5 +1760,69 @@ Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sist
 ## 04 · Principios SOLID
 
 ```java
+public class AsignadorMisionInfernape {
+    
+    private final RepositorioFlota   repo;
+    private final ServicioClima      clima;
+    private final DroneSelectionStrategy estrategia;
+    private final ObservadorDrone    notificador;
 
+    public AsignadorMisionInfernape(
+            RepositorioFlota r, ServicioClima c,
+            DroneSelectionStrategy e, ObservadorDrone n) {
+        this.repo = r; this.clima = c;
+        this.estrategia = e; this.notificador = n;
+    }
+
+    public void prueba() {
+        repo.findDisponibles("ECI");
+        clima.condicionesAptas("Bloque A", "Bloque C");
+        estrategia.selectDrone(null, null);
+        notificador.onEstadoCambiado(null, null);
+    }
+}
 ```
+
+Como vemos la clase no está acoplada a ninguna llamada HTTP real ni base de datos.
+
+```java
+@ExtendWith(MockitoExtension.class)
+public class AsignadorMisionInfernapeTest {
+    @Mock
+    private RepositorioFlota repo;
+    @Mock
+    private ServicioClima clima;
+    @Mock
+    private DroneSelectionStrategy estrategia;
+    @Mock
+    private ObservadorDrone notificador;
+    @InjectMocks
+    private AsignadorMisionInfernape asignador;
+
+    @Test
+    @DisplayName("Verifica que el método prueba() invoque a todos sus colaboradores")
+    void verificarInvocacionDeMetodos() {
+    
+        asignador.prueba();
+        verify(repo, times(1)).findDisponibles(any());
+        verify(clima, times(1)).condicionesAptas(any(), any());
+        verify(estrategia, times(1)).selectDrone(any(), any());
+        verify(notificador, times(1)).onEstadoCambiado(any(), any());
+    }
+}
+```
+## 05 · Diagrama de Contexto
+
+![](docs/images/DiagramaContextoSkyCampusEnterprise.drawio.png)
+
+### ¿Qué creció?
+* **Actores y Jerarquía de Usuarios:** Se pasó de una gestión local con 3 actores (`Operador`, `Solicitante`, `Admin`) y un rol de mantenimiento, a un modelo más grande con **6 actores**, agregando `Superadmin` (administración global de red) y `Coordinador de Sede` (supervisión y métricas).
+* **Integraciones y Sistemas Externos:** Se avanzó hacia un ecosistema regulado institucionalmente que incorpora entes reguladores nacionales (`Aerocivil`), gestión académica (`ERP Universitario`) y analítica avanzada (`Plataforma Analytics`).
+
+### ¿Qué se mantuvo?
+Se mantuvo el flujo esencial de la operación. Las entidades principales como drones y misiones continuaron siendo la columna vertebral de la solución, manteniendo la coherencia en cada etapa.
+
+### ¿Cómo evolucionó la complejidad sin perder la coherencia?
+La complejidad evolucionó separando las responsabilidades y desacoplando el dominio de los sistemas externos, de eso modo se pudo hacer una transición a microservicios que permitieran extender nuevas funcionalidades.
+
+
