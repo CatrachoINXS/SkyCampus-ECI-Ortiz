@@ -1756,3 +1756,9 @@ Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sist
 ![](docs/images/DiagramasInfernape-Factory.drawio.png)
 
 **Justificacion:** Porque cada etapa puede requerir un drone distinto. El patrón Factory abstrae la lógica de inicialización.
+
+## 04 · Principios SOLID
+
+```java
+
+```
