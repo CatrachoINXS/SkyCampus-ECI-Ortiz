@@ -1972,3 +1972,15 @@ La solución es que el coordinador de sede se le permita definir el espacio aere
 | :--- | :--- | :--- | :--- |
 | **1** | Crear un script de automatización para la generación y carga local de certificados SSL/TLS en Docker. | **DevOps Lead** | 14 de Octubre de 2026 |
 | **2** | Desglosar las historias complejas con más de 5 SP en tareas técnicas de máximo 2 SP durante la sesión de Refinamiento. | **Scrum Master** | 16 de Octubre de 2026 |
+
+## 10 · Casos de Uso
+
+![](docs/images/DiagramaCasosUsoEnterprise.png)
+
+## 11 · Mocks y Prototipos
+
+Prototipo: [skycampus_enterprise_prototype.html](docs/skycampus_enterprise_prototype.html)
+(Abrir en un navegador)
+
+## 12 · TDD
+
