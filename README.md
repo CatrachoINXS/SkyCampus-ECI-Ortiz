@@ -1850,4 +1850,59 @@ La solución es que el coordinador de sede se le permita definir el espacio aere
 | **SC-RNF-03** | Ofrecer opción de modo Daltonismo (protanopía, deuteranopía, tritanopía) | **Could** |  |  |
 | **SC-RNF-04** | Algoritmo de asignación automática < 500ms para hasta 50 drones | **Must** | |  |
 
+## 07 · Plantilla DOSW
 
+|Código|SC-15|
+|---|---|
+|Nombre|Planificar ruta multi-etapa inter-sede|
+|Actor|Operador de drones|
+|Precondiciones|La solicitud de misión inter-sede debe estar registrada en el sistema. Debe existir conexión activa con el servicio de la Aerocivil y con la red de estaciones de carga.|
+
+#### DATOS DE ENTRADA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|sedeOrigen|Sede donde inicia el recorrido|`Sede`|Nombre de la sede de origen válida registrada en el sistema|Sí|
+|sedeDestino|Sede final de la entrega|`Sede`|Nombre de la sede destino válida registrada en el sistema y diferente a la sede de origen|Sí|
+|paquete|Estructura anidada con los datos de la carga|—|—|Sí|
+|paquete.peso|Peso del paquete a transportar|`Integer`|En gramos. Valor entre 1 y 2000 g|Sí|
+|paquete.tipo|Categoría del elemento enviado|`Enum(SOBRE, CARPETA, LIBRO)`|Debe ser uno de los tipos soportados|Sí|
+|paquete.prioridad|Grado de urgencia de la entrega|`Enum(URGENTE, NORMAL, BAJO)`|Determina la prioridad de paso en estaciones|Sí|
+|restriccionesEspeciales|Parámetros opcionales de manejo|`String`|—|No|
+|condicionesEspacioAereo|Estado reportado de las zonas de vuelo|`String`|Datos provistos por la Aerocivil|Sí|
+
+#### DATOS DE SALIDA
+
+|Nombre|Descripción|Tipo de campo|Reglas/Aplicación|Obligatorio|
+|---|---|---|---|---|
+|codigoRuta|Identificador único del plan de vuelo multi-etapa|`String`|Generado automáticamente por el sistema|Sí|
+|estadoRuta|Estado de la planificación realizada|`Enum(CONFIRMADA, RECHAZADA_AEROCIVIL, SIN_ESTACION, PESO_EXCEDIDO)`|Indica el resultado final del cálculo|Sí|
+|distanciaTotal|Distancia acumulada del recorrido inter-sede|`Double`|En kilómetros|Sí|
+
+#### FLUJO BÁSICO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|1|Sistema|Recibe la solicitud de ruta inter-sede con los sub-objetos del paquete, sedes y condiciones del espacio aéreo|—|
+|2|Sistema|Verifica la autorización del trayecto con el servicio de la Aerocivil|FA-1|
+|3|Sistema|Valida que el peso del paquete sea adecuado para la distancia del trayecto proyectado|FA-3|
+|4|Sistema|Calcula la división del trayecto en etapas respetando la distancia máxima continua permitida por tramo|—|
+|5|Sistema|Asigna y reserva la estación de carga intermedia requerida para la recarga|FA-2|
+|6|Sistema|Asigna los drones requeridos para cubrir cada etapa del recorrido según la carga y batería|—|
+|7|Sistema|Confirma el plan de vuelo completo e inicia la ejecución de la misión|—|
+
+#### FLUJO ALTERNO
+
+|Paso|Actor|Descripción|Excepciones|
+|---|---|---|---|
+|FA-1|Sistema|Cuando la Aerocivil rechaza el permiso por restricciones en el espacio aéreo o clima, el sistema cancela la planificación.|—|
+|FA-2|Sistema|Cuando no hay estación de carga disponible en la ruta o los cupos están llenos, el sistema detiene el proceso y cancela el despegue|—|
+|FA-3|Sistema|Cuando el peso del paquete supera el límite permitido para trayectos largos, el sistema interrumpe la asignación, genera el estado PESO_EXCEDIDO y notifica la restricción|—|
+
+#### REGLAS DE NEGOCIO
+
+|No.|Descripción|
+|---|---|
+|1|Un drone no puede volar más de 5 km continuos cuando lleva carga sin realizar una recarga de batería.|
+|2|Un paquete no puede permanecer detenido en una estación de carga intermedia por más de 30 minutos.|
+|3|Si la Aerocivil reporta restricción temporal en cualquier tramo urbano, la ruta entera queda suspendida.|
