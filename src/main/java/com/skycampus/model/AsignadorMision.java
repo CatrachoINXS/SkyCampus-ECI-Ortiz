@@ -1,11 +1,8 @@
 package com.skycampus.model;
 
-import com.skycampus.repository.RepositorioFlota;
 import com.skycampus.service.ApiMeteorologica;
 import com.skycampus.service.GestorFlota;
 import com.skycampus.service.GestorMisiones;
-import com.skycampus.service.observer.ObservadorDrone;
-import com.skycampus.service.strategy.DroneSelectionStrategy;
 import com.skycampus.service.strategy.HighestBatteryStrategy;
 
 import java.util.List;

@@ -7,8 +7,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.skycampus.model.ServicioAerocivil;
 import com.skycampus.model.ServicioClima;
+import com.skycampus.service.FlotaDrones;
 
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,12 @@ public class MisionIntegrationTest {
     @Autowired MockMvc mvc;
     @MockBean ServicioClima climaMock;
     @MockBean ServicioAerocivil aerocivilMock;
+    @Autowired FlotaDrones flota;
+ 
+    @BeforeEach
+    void reiniciarFlota() {
+        flota.reiniciar();
+    }
 
     @Test
     void crearMision_climaApto_retornaOkConDroneAsignado() throws Exception {
@@ -54,7 +61,8 @@ public class MisionIntegrationTest {
     void crearMision_sinDrones_retornaNotFound() throws Exception {
         Mockito.when(aerocivilMock.solicitarPermiso(Mockito.any())).thenReturn(true);
         Mockito.when(climaMock.condicionesAptas(Mockito.any(), Mockito.any())).thenReturn(true);
-
+        flota.vaciar();
+ 
         mvc.perform(post("/api/misiones")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"sedeOrigen\":\"ECI\",\"destino\":\"UNAL\",\"pesoPaquete\":300,\"prioridad\":\"NORMAL\"}"))
