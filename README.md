@@ -1911,3 +1911,64 @@ La solución es que el coordinador de sede se le permita definir el espacio aere
 
 ![](docs/images/PanelSkyCampusMultiuniversidad.png)
 
+## 09 · Agilismo
+
+#### Sprint 1: Conectividad Multi-Sede Básica
+* **Objetivo del Sprint:** Desplegar la infraestructura base distribuida, API Gateway y la gestión de usuarios/sedes para permitir la comunicación segura entre múltiples sedes.
+* **Story Points totales:** 32 SP
+
+| ID Historia | Historia de Usuario (HU) | Story Points (SP) | Responsable |
+| :--- | :--- | :--- | :--- |
+| `SKY-108` | Como Superadmin quiero gestionar sedes y roles para controlar el acceso a la red multi-sede | 8 SP | Backend Lead |
+| `SKY-109` | Como sistema quiero configurar el API Gateway para enrutar las peticiones entre microservicios | 8 SP | DevOps / Infra |
+| `SKY-110` | Como operador quiero autenticarme mediante JWT para acceder a los servicios de mi sede | 5 SP | Backend Dev |
+| `SKY-112` | Como coordinador de sede quiero configurar el radio de vuelo para establecer el límite operativo de mi sede | 5 SP | Backend Dev |
+| `SKY-203` | Como oficial de seguridad quiero cifrar el tráfico inter-servicios mediante HTTPS/TLS | 6 SP | DevOps / Infra |
+
+---
+
+#### Sprint 2: Rutas Multi-Etapa y Estaciones de Carga
+* **Objetivo del Sprint:** Implementar el cálculo de rutas compuestas (inter-sede), la integración con la API de Aerocivil y la reserva de estaciones de carga intermedias.
+* **Story Points totales:** 34 SP
+
+| ID Historia | Historia de Usuario (HU) | Story Points (SP) | Responsable |
+| :--- | :--- | :--- | :--- |
+| `SKY-105` | Como Servicio de Rutas quiero calcular la división de viajes inter-sede en etapas de máximo 5 km | 8 SP | Backend Lead |
+| `SKY-115` | Como sistema quiero reservar estaciones de carga intermedias garantizando paradas < 30 min | 8 SP | Backend Dev |
+| `SKY-209` | Como sistema quiero validar las rutas con la API de Aerocivil para no superar los 120m de altura | 8 SP | Integration Dev |
+| `SKY-102` | Como sistema quiero seleccionar drones por capacidad y batería para cubrir cada etapa | 5 SP | Backend Dev |
+| `SKY-106` | Como usuario quiero recibir notificaciones de eventos en los cambios de etapa | 5 SP | Frontend Dev |
+
+---
+
+#### Sprint 3: Analytics y Panel Superadmin
+* **Objetivo del Sprint:** Construir la infraestructura de telemetría, tableros de métricas globales y la integración con la plataforma de analítica externa.
+* **Story Points totales:** 31 SP
+
+| ID Historia | Historia de Usuario (HU) | Story Points (SP) | Responsable |
+| :--- | :--- | :--- | :--- |
+| `SKY-107` | Como Coordinador quiero visualizar dashboards con tiempos de entrega y rendimiento por sede | 8 SP | Frontend Lead |
+| `SKY-118` | Como Servicio de Analytics quiero exportar eventos de vuelo a la Plataforma de Analytics externa | 8 SP | Data / Backend |
+| `SKY-119` | Como Superadmin quiero monitorear el estado global de todas las sedes en tiempo real | 8 SP | Frontend Dev |
+| `SKY-201` | Como equipo de operaciones quiero realizar pruebas de carga para asegurar 99.5% de disponibilidad | 7 SP | QA / DevOps |
+
+---
+
+### Retrospectiva Sprint 1
+
+#### Cosas que salieron bien
+1. El API Gateway se configuró a tiempo.
+2. Los DTOs e interfaces de dominio se acordaron desde el Sprint Planning, lo que redujo bloqueos en el desarrollo backend.
+3. Las reuniones dailys de 15 minutos fueron directas y ayudaron a despejar de inmediato dudas con la configuración de Docker.
+
+#### Cosas a mejorar
+1. Los certificados HTTPS/TLS de prueba tomaron más tiempo del que habiamos pensado porque no estaban estandarizados en los entornos locales de desarrollo.
+2. La historia `SKY-108` dependía de permisos complejos que no se detallaron completamente en el refinamiento.
+3. Las pruebas de comunicación se dejaron para el último día del sprint, lo qye generó estrés al final.
+
+#### Compromisos de Mejora
+
+| # | Compromiso Concreto | Responsable | Fecha Límite (Due Date) |
+| :--- | :--- | :--- | :--- |
+| **1** | Crear un script de automatización para la generación y carga local de certificados SSL/TLS en Docker. | **DevOps Lead** | 14 de Octubre de 2026 |
+| **2** | Desglosar las historias complejas con más de 5 SP en tareas técnicas de máximo 2 SP durante la sesión de Refinamiento. | **Scrum Master** | 16 de Octubre de 2026 |
