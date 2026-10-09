@@ -1734,3 +1734,25 @@ Nuevos actores: Superadministrador de red, Coordinador por sede, Aerocivil (sist
 >
 > **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 >
+
+## 03 · Patrones de Diseño
+
+### Composite
+![](docs/images/DiagramasInfernape-Composite.drawio.png)
+
+**Justificacion:** Porque este patrón nos permite ejecutar y calcular la distancia total de una ruta de forma transparente, independientemente si la ruta tiene 2 o más puntos.
+
+### Strategy
+![](docs/images/DiagramasInfernape-Strategy.drawio.png)
+
+**Justificacion:** Porque permite encapsular los algoritmos de navegación para poder cambiar de una ruta rápida a una de bajo consumo sin modificar la estructura de GestorMisiones.
+
+### Observer
+![](docs/images/DiagramasInfernape-Observer.drawio.png)
+
+**Justificacion:** Porque mantiene desacoplada la ejecución de la ruta de los sistemas las alertas, las rutas no conocen a los observadores.
+
+### Factory
+![](docs/images/DiagramasInfernape-Factory.drawio.png)
+
+**Justificacion:** Porque cada etapa puede requerir un drone distinto. El patrón Factory abstrae la lógica de inicialización.
