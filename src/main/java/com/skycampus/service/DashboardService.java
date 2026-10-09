@@ -29,7 +29,7 @@ public class DashboardService {
                 sede -> sede,
                 sede -> misiones.stream()
                         .filter(m -> m.sede() != null && m.sede().equals(sede) && m.estado() == EstadoMision.ENTREGADA)
-                        .mapToDouble(Mision::tiempoEntregaMinutos)
+                        .mapToDouble(m -> Mision.TIEMPO_ENTREGA_MINUTOS)
                         .average()
                         .orElse(0.0)
         ));

@@ -18,4 +18,8 @@ public class Sede {
     public double tasaExito() {
         return (double) misionesCompletadas /misionesSolicitadas;
     }
+
+    public String getNombre() {
+        return nombre;
+    }
 }
